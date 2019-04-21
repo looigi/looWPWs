@@ -1,0 +1,318 @@
+﻿
+.griglia {
+    border: 0;
+    width: 100%;
+    margin-top: 2px;
+    padding: 3px;
+    /*-webkit-box-shadow: 1px 1px 3px 1px rgba(0, 0, 0, .3);
+    -moz-box-shadow: 1px 1px 3px 1px rgba(0, 0, 0, .3);
+    box-shadow: 1px 1px 3px 1px rgba(0, 0, 0, .3);*/
+
+    /*border: 1px solid #aaaaaa;*/
+    
+    /*-webkit-border-radius: 0.35em 0.35em 0.35em 0.35em;
+    -moz-border-radius: 0.35em 0.35em 0.35em 0.35em;
+    border-radius: 0.35em 0.35em 0.35em 0.35em;
+    
+    -webkit-box-shadow: 2px 2px 1px hsla(128, 13%, 35%, 0.78);
+    -moz-box-shadow: 2px 2px 1px hsla(128, 13%, 35%, 0.78);*/
+    
+    -webkit-box-shadow: 2px 2px 1px hsla(128, 13%, 35%, 0.78);
+    -moz-box-shadow: 2px 2px 1px hsla(128, 13%, 35%, 0.78);
+    box-shadow: 2px 2px 1px hsla(128, 13%, 35%, 0.78);
+
+    background-color: #629263;
+
+    opacity: .92;
+}
+
+.grigliaPiccola {
+    border: 0;
+    width: 50%;
+    margin-top: 4px;
+
+    margin: 0 auto;
+
+    /*-webkit-box-shadow: 1px 1px 3px 1px rgba(0, 0, 0, .3);
+    -moz-box-shadow: 1px 1px 3px 1px rgba(0, 0, 0, .3);
+    box-shadow: 1px 1px 3px 1px rgba(0, 0, 0, .3);
+    
+    -webkit-border-radius: 0.35em 0.35em 0.35em 0.35em;
+    -moz-border-radius: 0.35em 0.35em 0.35em 0.35em;
+    border-radius: 0.35em 0.35em 0.35em 0.35em;*/
+
+    -webkit-box-shadow: 2px 2px 1px hsla(128, 13%, 35%, 0.78);
+    -moz-box-shadow: 2px 2px 1px hsla(128, 13%, 35%, 0.78);
+    box-shadow: 2px 2px 1px hsla(128, 13%, 35%, 0.78);
+
+    background-color: #629263;
+
+    opacity: .92;
+}
+
+.testata-griglia {
+    /* -webkit-border-radius: 4px;
+    -moz-border-radius: 4px;
+    border: 1px solid #0d4007;
+    border-radius: 4px;   */
+      
+    -webkit-box-shadow: 0px 0px 4px 1px rgba(0, 0, 0, .3);
+    -moz-box-shadow: 0px 0px 4px 1px rgba(0, 0, 0, .3);
+    box-shadow: 0px 0px 4px 1px rgba(0, 0, 0, .3); 
+ 
+    background-color: #437b3f;
+
+    font-family: Verdana;
+    font-size: 10px;
+}
+
+.riga-pari-griglia {
+    /*border: 0; */
+    
+    border-bottom: 1px solid #4f5f4d;
+
+    /*color: #344C29;*/
+    color: #F0F5EE;
+    text-shadow : 1px 1px 1px #192116; /* #D9E4D6;*/
+    background-color: #89a286;
+}
+
+.riga-dispari-griglia {
+    /*border: 0; */
+    
+    border-bottom: 1px solid #4f5f4d;
+
+    color: #BBEABB; /* #D9E4D6;*/
+    text-shadow : 1px 1px 1px #0B1F07;
+    background-color: #7aa071;
+}
+
+.intestazioneverde {
+    color: #E9F2EB;
+    background-color: #92BD96;
+}
+
+.intestazioneblu {
+    color: #CFDEEF;
+    background-color: #7396F2;
+}
+
+.intestazionerossa {
+    color: #F5CFD3;
+    background-color: rgba(244, 46, 46, 0.58);
+}
+
+.cella-testata-griglia-princ {
+    border: 0;
+    padding: 3px 3px;
+    
+    text-align:center;
+ 
+    font-family: Verdana;
+    font-size: 13px;
+    /*border-left: 1px #7fa6cc solid;*/
+ 
+    font-family: Verdana;
+    font-size: 12px;
+
+    max-width : 200px;
+}
+
+.cella-testata-griglia {
+    border: 0;
+    border-left: 1px solid #6b8a55;
+    border-bottom: 1px solid #c8e0b8;
+    padding: 7px 1px;
+
+    /*color: #B50928;*/
+    color: #74FB53;
+   
+    text-align:center;
+ 
+    font-family: Verdana;
+    font-size: 13px;
+    /*border-bottom: 1px #6EBF6E  solid;*/
+ 
+    text-shadow : 1px 1px 1px #8CA085;
+
+    font-family: Verdana;
+}
+
+.cella-testata-griglia-grande {
+    border: 0;
+    border-left: 1px solid #6b8a55;
+    border-bottom: 1px solid #c8e0b8;
+    padding: 2px 2px;
+    color: #efefef;
+    /*background-color: #a5a19a;*/
+    background-color: #94bbd1;
+    text-align:center;
+ 
+    font-family: Verdana;
+    font-size: 13px;
+    /*border-left: 1px #7fa6cc solid;*/
+
+    max-width : 260px;
+    min-width: 180px;
+}
+
+.cella-testata-griglia-piccola {
+    border: 0;
+    border-left: 1px solid #91b775;
+    padding: 2px 2px;
+    color: #e5e3df;
+    text-align:center;
+    /*border-left: 1px #7fa6cc solid;*/
+
+    font-family: Verdana;
+    font-size: 11px;
+
+    max-width : 200px;
+}
+
+.cella-elemento-griglia {
+    padding: 1px 1px;
+    border: 0;
+    border-left: 1px solid #91b775;
+    /*color: #477547;*/
+ 
+    font-family: Verdana;
+    font-weight:bold;
+    font-size: 13px;
+    /*border-left: 1px #6EBF6E  solid;*/
+
+    text-align:center;
+    padding:5px;
+
+    /*max-width : 200px;*/
+}
+
+.cella-elemento-griglia-sinistra {
+    padding: 1px 15px;
+    border: 0;
+    border-left: 1px solid #91b775;
+    /*color: #477547;*/
+ 
+    font-family: Verdana;
+    font-weight:bold;
+    font-size: 13px;
+    /*border-left: 1px #6EBF6E  solid;*/
+
+    text-align: left;
+    /*max-width : 200px;*/
+    padding:5px;
+    margin-right: 5px;
+}
+
+.cella-elemento-griglia-grande {
+    padding: 1px 1px;
+    border: 0;
+    border-left: 1px solid #91b775;
+    color: #aa0000;
+ 
+    font-family: Verdana;
+    font-weight:bold;
+    font-size: 27px;
+    /*border-left: 1px #6EBF6E  solid;*/
+
+    padding:5px;
+    text-align: center;
+}
+
+.cella-elemento-griglia-sinistra-lungo {
+    padding: 1px 1px;
+    border: 0;
+    border-left: 1px solid #91b775;
+    /*color: #477547;*/
+ 
+    font-family: Verdana;
+    font-weight:bold;
+    font-size: 13px;
+    /*border-left: 1px #6EBF6E  solid;*/
+    padding:5px;
+
+    text-align: left;
+
+    min-width: 300px;
+    max-width : 500px;
+}
+
+
+.cella-elemento-griglia-destra {
+    padding: 2px 2px;
+    border: 0;
+    border-left: 1px solid #91b775;
+    /*font-size: 14px;
+    font-family: Arial;*/
+    /*color: #777777;*/
+    text-align:right;
+ 
+    padding:5px;
+    /*font-family: Tahoma;
+    font-weight: bold;*/
+    /*font-size: 13px;*/
+    /*border-left: 1px #bbbbbb solid;*/
+
+    max-width : 200px;
+}
+
+.cella-elemento-griglia-piccola {
+    padding: 2px 2px;
+    border: 0;
+    border-left: 1px solid #91b775;
+    font-size: 11px;
+    font-family: Arial;
+    color: #777777;
+    text-align:left;
+ 
+    font-family: Tahoma;
+    font-weight:bold;
+    font-size: 13px;
+    /*border-left: 1px #bbbbbb solid;*/
+
+    padding:5px;
+    max-width : 200px;
+}
+
+.aggiuntivi-cella-testata-griglia_checkbox {
+    width: 10%;
+}
+
+.aggiuntivi-cella-elemento-griglia_checkbox {
+    text-align: center;
+}
+
+.paginazione-griglia {
+    /*background-color: #80B982;*/
+    border-color: #aaaaaa;
+    
+    -webkit-border-radius: 4px;
+    -moz-border-radius: 4px;
+    border-radius: 4px;  
+}
+
+.paginazione-griglia > td {
+    border: 0;
+}
+
+.paginazione-griglia table {
+    margin: 3px 0;
+    width: 200px;
+    float: right;
+    font-size: 14px;
+}
+
+.paginazione-griglia table tr td span {
+    background-color: #e2e1d6;
+    padding: 0 4px;
+    
+    -webkit-border-radius: 4px;
+    -moz-border-radius: 4px;
+    border-radius: 4px;  
+      
+    -webkit-box-shadow: 0px 0px 4px 1px rgba(0, 0, 0, .3);
+    -moz-box-shadow: 0px 0px 4px 1px rgba(0, 0, 0, .3);
+    box-shadow: 0px 0px 4px 1px rgba(0, 0, 0, .3); 
+    
+    font-weight: bold;
+}

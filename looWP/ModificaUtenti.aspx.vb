@@ -189,13 +189,13 @@ Public Class ModificaUtenti
             Dim NomeImmagine As String = Server.MapPath(".") & "\App_Themes\Standard\Images\Utenti\" & txtUtente.Text & ".jpg"
             gf.CreaDirectoryDaPercorso(Server.MapPath(".") & "\App_Themes\Standard\Images\Utenti\")
             FileUpload1.SaveAs(NomeImmagine)
-        Else
-            If hdnNomeUtente.Value <> txtUtente.Text Then
-                Dim NomeImmagineVecchia As String = Server.MapPath(".") & "\App_Themes\Standard\Images\Utenti\" & hdnNomeUtente.Value & ".jpg"
-                Dim NomeImmagineNuova As String = Server.MapPath(".") & "\App_Themes\Standard\Images\Utenti\" & txtUtente.Text & ".jpg"
+            'Else
+            '    If hdnNomeUtente.Value <> txtUtente.Text Then
+            '        Dim NomeImmagineVecchia As String = Server.MapPath(".") & "\App_Themes\Standard\Images\Utenti\" & hdnNomeUtente.Value & ".jpg"
+            '        Dim NomeImmagineNuova As String = Server.MapPath(".") & "\App_Themes\Standard\Images\Utenti\" & txtUtente.Text & ".jpg"
 
-                Rename(NomeImmagineVecchia, NomeImmagineNuova)
-            End If
+            '        Rename(NomeImmagineVecchia, NomeImmagineNuova)
+            '    End If
         End If
 
         CaricaUtenti()

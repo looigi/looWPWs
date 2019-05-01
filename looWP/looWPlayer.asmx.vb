@@ -500,47 +500,18 @@ Public Class looWPlayer
     <WebMethod()>
     Public Function RitornaBrano(NomeUtente As String, DirectBase As String, Artista As String, Album As String,
                                  Brano As String, Converte As String, Qualita As String) As String
-        'Dim gf As New GestioneFilesDirectory
-        'Dim pathFile As String = Server.MapPath(".") & "\tempfile.dat"
-        'Dim tutto As String = DirectBase & ";" & Artista & ";" & Album & ";" & Brano & ";" & Converte & ";" & Qualita
-
-        'If File.Exists(pathFile) Then
-        '    Dim riga As String = gf.LeggeFileIntero(pathFile)
-
-        '    If riga = tutto Then
-        '        Dim dd As Date = FileDateTime(pathFile)
-        '        Dim ddd As Integer = Math.Abs(DateDiff(DateInterval.Second, dd, Now))
-        '        If ddd < 60 Then
-        '            ' Sta già elaborando il file. Esco senza fare niente
-        '            Return "ERROR: brano già in conversione"
-        '        Else
-        '            Do While File.Exists(pathFile)
-        '                Try
-        '                    File.Delete(pathFile)
-        '                Catch ex As Exception
-
-        '                End Try
-        '                Thread.Sleep(1000)
-        '            Loop
-        '        End If
-        '    End If
-        '    'Else
-        '    '    Dim conta As Integer = 0
-
-        '    '    Do While File.Exists(pathFile)
-        '    '        conta += 1
-        '    '        If conta > 60 Then
-        '    '            ' Esco. Ci ha messo troppo tempo
-        '    '            Return "ERROR: timeout elaborazione web service"
-        '    '        End If
-        '    '        Thread.Sleep(1000)
-        '    '    Loop
-        'End If
-        'gf.CreaAggiornaFile(pathFile, tutto)
-
         Dim gf As New GestioneFilesDirectory
-        gf.CreaDirectoryDaPercorso(Server.MapPath(".") & "\Log\")
         Dim l As New Logger
+        Dim ChiaveAttuale As String = NomeUtente & ";" & Artista & ";" & Album & ";" & Brano & ";" & Converte
+
+        If ChiaveAttuale = UltimaChiaveBranoMP3 Then
+            l.ScriveLogServizio("Brano già in download / conversione")
+            Return "ERROR: brano già in download / conversione"
+        End If
+
+        UltimaChiaveBranoMP3 = NomeUtente & ";" & Artista & ";" & Album & ";" & Brano & ";" & Converte
+
+        gf.CreaDirectoryDaPercorso(Server.MapPath(".") & "\Log\")
         l.ImpostaFileDiLog(Server.MapPath(".") & "\Log\Logger.txt")
 
         Dim StringaConversione As String = "ffmpeg -i 1.mp3 -map 0:a:0 -b:a " & Qualita & "k 2.mp3"
@@ -692,14 +663,7 @@ Public Class looWPlayer
         End If
         l.ScriveLogServizio("Fine operazione")
 
-        'Do While File.Exists(pathFile)
-        '    Try
-        '        File.Delete(pathFile)
-        '    Catch ex As Exception
-
-        '    End Try
-        '    Thread.Sleep(1000)
-        'Loop
+        UltimaChiaveBranoMP3 = ""
 
         u = Nothing
         gf = Nothing

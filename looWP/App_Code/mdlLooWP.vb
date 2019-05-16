@@ -7,8 +7,11 @@ Module mdlLooWP
     Public NomeCanzoneDaComprimere As String
     Public processoFFMpeg As System.Diagnostics.Process
     Public UltimaChiaveBranoMP3 As String = ""
+	Public UltimoRitorno As String = ""
+	Public InterrompiElaborazione As Boolean
+	Public Quanti As Integer = 0
 
-    Public Function ConverteData(Datella As Date) As String
+	Public Function ConverteData(Datella As Date) As String
         Return Datella.Year & "-" & Format(Datella.Month, "00") & "-" & Format(Datella.Day, "00") & " " & Format(Datella.Hour, "00") & ":" & Format(Datella.Minute, "00") & ":" & Format(Datella.Second, "00") & ".000"
     End Function
 

@@ -1,5 +1,4 @@
 ﻿Imports System.IO
-Imports PardesiServices.WinControls
 
 Public Class ModificaUtenti
     Inherits System.Web.UI.Page

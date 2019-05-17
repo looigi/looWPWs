@@ -719,31 +719,31 @@ Public Class looWPlayer
 
 	<WebMethod()>
 	Public Function IncrementaAscoltate(NomeUtente As String, Artista As String, Album As String, Brano As String) As String
-        Dim u As New Utility
-        Dim gf As New GestioneFilesDirectory
-        Dim Path() As String = u.RitornaPercorsiDB.Split(";")
-        Dim Ritorno As String = ""
+		Dim u As New Utility
+		Dim gf As New GestioneFilesDirectory
+		Dim Path() As String = u.RitornaPercorsiDB.Split(";")
+		Dim Ritorno As String = ""
 
-        Dim mDBCE As New MetodiDbCE
-        Dim NomeDB As String = Path(1) & "MP3Tag.sdf"
-        Dim Sql As String = "Update ListaCanzone2 Set Ascoltata=Ascoltata+1 Where Artista='" & Artista.Replace("'", "''") & "' And Album='" & Album.Replace("'", "''") & "' And Canzone='" & Brano.Replace("'", "''") & "'"
-        Dim Rit As String = ""
-        Rit = mDBCE.ApreConnessione(gf.TornaNomeDirectoryDaPath(NomeDB), gf.TornaNomeFileDaPath(NomeDB))
-        If Rit <> "OK" Then
-            Return Rit
-        End If
-        Rit = mDBCE.EsegueSQL(Sql)
-        If Rit = "OK" Then
-            Ritorno = "*"
-        Else
-            Ritorno = "ERROR: " & Rit
-        End If
-        mDBCE.ChiudeConnessione()
+		Dim mDBCE As New MetodiDbCE
+		Dim NomeDB As String = Path(1) & "MP3Tag.sdf"
+		Dim Sql As String = "Update ListaCanzone2 Set Ascoltata=Ascoltata+1 Where Artista='" & Artista.Replace("'", "''") & "' And Album='" & Album.Replace("'", "''") & "' And Canzone='" & Brano.Replace("'", "''") & "'"
+		Dim Rit As String = ""
+		Rit = mDBCE.ApreConnessione(gf.TornaNomeDirectoryDaPath(NomeDB), gf.TornaNomeFileDaPath(NomeDB))
+		If Rit <> "OK" Then
+			Return Rit
+		End If
+		Rit = mDBCE.EsegueSQL(Sql)
+		If Rit = "OK" Then
+			Ritorno = "*"
+		Else
+			Ritorno = "ERROR: " & Rit
+		End If
+		mDBCE.ChiudeConnessione()
 
-        Return Ritorno
-    End Function
+		Return Ritorno
+	End Function
 
-    <WebMethod()>
+	<WebMethod()>
     Public Function SettaStelle(NomeUtente As String, Artista As String, Album As String, Brano As String, Stelle As String) As String
         Dim u As New Utility
         Dim gf As New GestioneFilesDirectory

@@ -712,9 +712,38 @@ Public Class looWPlayer
 		l.ScriveLogServizio("Attesa completamento. Pulizia nome canzone: " & NomeCanzoneDaComprimere)
 		File.Delete(NomeCanzoneDaComprimere)
 
-		trd.Abort()
+		Dim NomeFileTemp As String = HttpContext.Current.Server.MapPath(".") & "\Temp\" & parameters.NomeUtente & ".txt"
+		l.ScriveLogServizio("Eliminazione file di lavoro in corso: " & NomeFileTemp)
+		conta = 0
+		Dim Errore As Boolean = False
 
-		File.Delete(HttpContext.Current.Server.MapPath(".") & "\Temp\" & parameters.NomeUtente & ".txt")
+		Do While File.Exists(NomeFileTemp)
+			File.Delete(NomeFileTemp)
+			Thread.Sleep(1000)
+			conta += 1
+			If conta > 15 Then
+				Errore = True
+				Exit Do
+			End If
+		Loop
+		If Errore Then
+			' Elimino tutti i files della directory visto che non sono riuscito ad eliminare quello dell'utente
+			l.ScriveLogServizio("Elimino tutti i files della directory visto che non sono riuscito ad eliminare quello dell'utente")
+			For i As Integer = 1 To 3
+				For Each foundFile As String In My.Computer.FileSystem.GetFiles(HttpContext.Current.Server.MapPath(".") & "\Temp")
+					If foundFile.ToUpper.Contains(".TXT") Then
+						l.ScriveLogServizio("Elimino: " & foundFile)
+						File.Delete(foundFile)
+						If File.Exists(foundFile) Then
+							l.ScriveLogServizio("Elimino: " & foundFile & " -> ERRORE: Non riuscito")
+						End If
+					End If
+				Next
+				Thread.Sleep(1000)
+			Next
+		End If
+
+		trd.Abort()
 	End Sub
 
 	<WebMethod()>

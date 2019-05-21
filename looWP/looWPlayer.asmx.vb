@@ -139,7 +139,6 @@ Public Class looWPlayer
 
 				rec.close
 			End If
-			mDBCESito.ChiudeConnessione()
 
 			If PathUtente = "" Then
 				PathUtente = Path(0)
@@ -287,7 +286,37 @@ Public Class looWPlayer
 										If rec2.eof Then
 											Altro &= ";;;"
 										Else
-											Altro &= rec2("Testo").Value.ToString.Replace(";", "**PV**").Replace("§", "**A CAPO**") & ";" & rec2("TestoTradotto").Value.ToString.Replace(";", "**PV**").Replace("§", "**A CAPO**") & ";" & rec2("Ascoltata").Value.ToString & ";" & rec2("Bellezza").Value.ToString
+											Dim Bellezza As String = rec2("Bellezza").Value.ToString
+											Dim idCanzone As String = rec2("idCanzone").Value.ToString
+											Dim Ascoltata As String = rec2("Ascoltata").Value.ToString
+
+											Dim rec3 As Object = mDBCESito.RitornaRecordset("Select * From Bellezza Where idCanzone=" & idCanzone)
+											l.ScriveLogServizio("Query: Select * From Bellezza Where idCanzone=" & idCanzone)
+											If rec3 Is Nothing Then
+												' l.ScriveLogServizio("Non trovato nulla per quanto riguarda la bellezza. Lascio quella originale.")
+											Else
+												If Not rec3.eof Then
+												Else
+													Bellezza = rec3("Bellezza").Value.ToString
+												End If
+
+												rec3.close
+											End If
+
+											rec3 = mDBCESito.RitornaRecordset("Select * From Ascoltata Where idCanzone=" & idCanzone)
+											l.ScriveLogServizio("Query: Select * From Ascoltata Where idCanzone=" & idCanzone)
+											If rec3 Is Nothing Then
+												' l.ScriveLogServizio("Non trovato nulla per quanto riguarda la Ascoltata. Lascio quella originale.")
+											Else
+												If Not rec3.eof Then
+												Else
+													Ascoltata = rec3("Ascoltata").Value.ToString
+												End If
+
+												rec3.close
+											End If
+
+											Altro &= rec2("Testo").Value.ToString.Replace(";", "**PV**").Replace("§", "**A CAPO**") & ";" & rec2("TestoTradotto").Value.ToString.Replace(";", "**PV**").Replace("§", "**A CAPO**") & ";" & Ascoltata & ";" & Bellezza
 										End If
 									End If
 								Else
@@ -380,6 +409,8 @@ Public Class looWPlayer
 
 			gf = Nothing
 			u = Nothing
+
+			mDBCESito.ChiudeConnessione()
 
 			Ritorno = "Downloads\" & NomeFileFinale
 			LastFileName.Item(idUtente) = Ritorno
@@ -890,5 +921,101 @@ Public Class looWPlayer
 
         Return Ritorno
     End Function
+
+	<WebMethod()>
+	Public Function ModificaBellezza(idCanzone As String, Bellezza As String) As String
+		Dim gf As New GestioneFilesDirectory
+		gf.CreaDirectoryDaPercorso(Server.MapPath(".") & "\Log\")
+		Dim l As New Logger
+		l.ImpostaFileDiLog(Server.MapPath(".") & "\Log\Logger.txt")
+
+		l.ScriveLogServizio("ModificaBellezza -> idCanzone: " & idCanzone & " Bellezza: " & Bellezza)
+		Dim u As New Utility
+		Dim Ritorno As String = ""
+
+		Dim mDBCE As New MetodiDbCE
+		Dim NomeDB As String = HttpContext.Current.Server.MapPath(".") & "\Db\looWebPlayer.sdf"
+		Dim Sql As String = ""
+
+		Dim Rit As String = mDBCE.ApreConnessione(gf.TornaNomeDirectoryDaPath(NomeDB), gf.TornaNomeFileDaPath(NomeDB))
+		If Rit <> "OK" Then
+			l.ScriveLogServizio("Errore su apertura db: " & Rit)
+			Return Rit
+		End If
+
+		Sql = "Select * From Bellezza Where idCanzone=" & idCanzone
+		Dim rec As Object = mDBCE.RitornaRecordset(Sql)
+		If rec Is Nothing Then
+			Ritorno = "ERROR: query non valida"
+			l.ScriveLogServizio("Query non valida: " & Ritorno)
+		Else
+			If Not rec.eof Then
+				Sql = "Update Bellezza Set Bellezza=" & Bellezza & " Where idCanzone=" & idCanzone
+			Else
+				Sql = "Insert Into Bellezza Values (" & idCanzone & ", " & Bellezza & ")"
+			End If
+			' rec.close
+
+			Rit = mDBCE.EsegueSQL(Sql)
+			If Rit = "OK" Then
+				Ritorno = "*"
+				l.ScriveLogServizio("OK")
+			Else
+				Ritorno = "ERROR: " & Rit
+				l.ScriveLogServizio("Errore: " & Rit)
+			End If
+		End If
+		mDBCE.ChiudeConnessione()
+
+		Return Ritorno
+	End Function
+
+	<WebMethod()>
+	Public Function VolteAscoltata(idCanzone As String) As String
+		Dim gf As New GestioneFilesDirectory
+		gf.CreaDirectoryDaPercorso(Server.MapPath(".") & "\Log\")
+		Dim l As New Logger
+		l.ImpostaFileDiLog(Server.MapPath(".") & "\Log\Logger.txt")
+
+		l.ScriveLogServizio("VolteAscoltata -> idCanzone: " & idCanzone)
+		Dim u As New Utility
+		Dim Ritorno As String = ""
+
+		Dim mDBCE As New MetodiDbCE
+		Dim NomeDB As String = HttpContext.Current.Server.MapPath(".") & "\Db\looWebPlayer.sdf"
+		Dim Sql As String = ""
+
+		Dim Rit As String = mDBCE.ApreConnessione(gf.TornaNomeDirectoryDaPath(NomeDB), gf.TornaNomeFileDaPath(NomeDB))
+		If Rit <> "OK" Then
+			l.ScriveLogServizio("Errore su apertura db: " & Rit)
+			Return Rit
+		End If
+
+		Sql = "Select * From Ascoltata Where idCanzone=" & idCanzone
+		Dim rec As Object = mDBCE.RitornaRecordset(Sql)
+		If rec Is Nothing Then
+			Ritorno = "ERROR: query non valida"
+			l.ScriveLogServizio("Query non valida: " & Ritorno)
+		Else
+			If Not rec.eof Then
+				Sql = "Update Ascoltata Set Ascoltata=Ascoltata+1 Where idCanzone=" & idCanzone
+			Else
+				Sql = "Insert Into Ascoltata Values (" & idCanzone & ", 1)"
+			End If
+			' rec.close
+
+			Rit = mDBCE.EsegueSQL(Sql)
+			If Rit = "OK" Then
+				Ritorno = "*"
+				l.ScriveLogServizio("OK")
+			Else
+				Ritorno = "ERROR: " & Rit
+				l.ScriveLogServizio("Errore: " & Rit)
+			End If
+		End If
+		mDBCE.ChiudeConnessione()
+
+		Return Ritorno
+	End Function
 
 End Class

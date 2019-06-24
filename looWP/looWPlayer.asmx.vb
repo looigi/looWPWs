@@ -534,7 +534,7 @@ Public Class looWPlayer
 
 	<WebMethod()>
 	Public Function RitornaBrano(NomeUtente As String, DirectBase As String, Artista As String, Album As String,
-								 Brano As String, Converte As String, Qualita As String) As String
+								 Brano As String, Converte As String, Qualita As String, Attendi As Boolean) As String
 		Dim gf As New GestioneFilesDirectory
 		Dim l As New Logger
 		Dim ChiaveAttuale As String = NomeUtente & ";" & Artista & ";" & Album & ";" & Brano & ";" & Converte
@@ -678,18 +678,23 @@ Public Class looWPlayer
 							pi.WindowStyle = ProcessWindowStyle.Normal
 							processoFFMpeg.StartInfo = pi
 							processoFFMpeg.Start()
-							' p.WaitForExit()
+
+							If Attendi Then
+								processoFFMpeg.WaitForExit()
+							End If
 
 							NomeCanzoneDaComprimere = PathCanzoneCompressa.Replace("%20", " ")
 
 							l.ScriveLogServizio("Lancio compressione brano: " & NomeCanzoneDaComprimere)
 							l.ScriveLogServizio("Parametri: " & pi.Arguments)
 
-							trd = New Thread(AddressOf AttesaCompletamento)
-							Dim parameters As New MyParameters
-							parameters.NomeUtente = NomeUtente
-							trd.IsBackground = True
-							trd.Start(parameters)
+							If Not Attendi Then
+								trd = New Thread(AddressOf AttesaCompletamento)
+								Dim parameters As New MyParameters
+								parameters.NomeUtente = NomeUtente
+								trd.IsBackground = True
+								trd.Start(parameters)
+							End If
 
 							'If File.Exists(PathCanzoneCompressa.Replace("%20", " ")) Then
 							Ritorno = "\Compressi\" & PathCanzoneCompressa.Replace(Path(2), "").Replace("._TMP_", "")

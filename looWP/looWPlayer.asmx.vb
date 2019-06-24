@@ -503,7 +503,7 @@ Public Class looWPlayer
 
 	<WebMethod()>
 	Public Function RitornaBrano(NomeUtente As String, DirectBase As String, Artista As String, Album As String,
-								 Brano As String, Converte As String, Qualita As String) As String
+								 Brano As String, Converte As String, Qualita As String, Attendi As Boolean) As String
 		Dim gf As New GestioneFilesDirectory
 		Dim l As New Logger
 		Dim ChiaveAttuale As String = NomeUtente & ";" & Artista & ";" & Album & ";" & Brano & ";" & Converte
@@ -625,6 +625,8 @@ Public Class looWPlayer
 					'    End If
 					'End If
 
+					' Return PathCanzoneCompressa.Replace("%20", " ")
+
 					If File.Exists(PathCanzoneCompressa.Replace("%20", " ")) Then
 						Ritorno = "\Compressi\" & PathCanzoneCompressa.Replace(Path(2), "")
 						l.ScriveLogServizio("Canzone compressa esistente. La ritorno: " & Ritorno)
@@ -640,28 +642,44 @@ Public Class looWPlayer
 							Dim pi As ProcessStartInfo = New ProcessStartInfo()
 							' Qualita = 96 / 128 / 196
 							Dim Estensione As String = gf.TornaEstensioneFileDaPath(PathCanzoneCompressa)
-							PathCanzoneCompressa = PathCanzoneCompressa.Replace(Estensione, "") & "._TMP_" & Estensione
+
+							If Not Attendi Then
+								PathCanzoneCompressa = PathCanzoneCompressa.Replace(Estensione, "") & "._TMP_" & Estensione
+							Else
+								PathCanzoneCompressa = PathCanzoneCompressa.Replace(Estensione, "") & Estensione
+							End If
+
 							gf.EliminaFileFisico(PathCanzoneCompressa)
-							pi.Arguments = "-i " & Chr(34) & PathCanzone & Chr(34) & " -map 0:a:0 -b:a " & Qualita & "k " & Chr(34) & PathCanzoneCompressa.Replace("%20", " ") & Chr(34)
-							pi.FileName = HttpContext.Current.Server.MapPath(".") & "\App_Data\ffmpeg.exe"
-							pi.WindowStyle = ProcessWindowStyle.Normal
-							processoFFMpeg.StartInfo = pi
+								pi.Arguments = "-i " & Chr(34) & PathCanzone & Chr(34) & " -map 0:a:0 -b:a " & Qualita & "k " & Chr(34) & PathCanzoneCompressa.Replace("%20", " ") & Chr(34)
+								pi.FileName = HttpContext.Current.Server.MapPath(".") & "\App_Data\ffmpeg.exe"
+								pi.WindowStyle = ProcessWindowStyle.Normal
+								processoFFMpeg.StartInfo = pi
 							processoFFMpeg.Start()
-							' p.WaitForExit()
+
+							If Attendi Then
+								processoFFMpeg.WaitForExit()
+							End If
 
 							NomeCanzoneDaComprimere = PathCanzoneCompressa.Replace("%20", " ")
 
 							l.ScriveLogServizio("Lancio compressione brano: " & NomeCanzoneDaComprimere)
 							l.ScriveLogServizio("Parametri: " & pi.Arguments)
 
-							trd = New Thread(AddressOf AttesaCompletamento)
-							Dim parameters As New MyParameters
-							parameters.NomeUtente = NomeUtente
-							trd.IsBackground = True
-							trd.Start(parameters)
+							If Not Attendi Then
+								trd = New Thread(AddressOf AttesaCompletamento)
+								Dim parameters As New MyParameters
+								parameters.NomeUtente = NomeUtente
+								trd.IsBackground = True
+								trd.Start(parameters)
+							End If
 
 							'If File.Exists(PathCanzoneCompressa.Replace("%20", " ")) Then
-							Ritorno = "\Compressi\" & PathCanzoneCompressa.Replace(Path(2), "").Replace("._TMP_", "")
+							If Not Attendi Then
+								Ritorno = "\Compressi\" & PathCanzoneCompressa.Replace(Path(2), "").Replace("._TMP_", "")
+							Else
+								Ritorno = "\Compressi\" & PathCanzoneCompressa.Replace(Path(2), "")
+							End If
+
 							'Else
 							'    Ritorno = "ERROR: brano di destinazione non rilevato"
 							'End If

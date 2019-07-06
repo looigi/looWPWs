@@ -534,7 +534,7 @@ Public Class looWPlayer
 
 	<WebMethod()>
 	Public Function RitornaBrano(NomeUtente As String, DirectBase As String, Artista As String, Album As String,
-								 Brano As String, Converte As String, Qualita As String, Attendi As Boolean) As String
+								 Brano As String, Converte As String, Qualita As String, Attendi As String) As String
 		Dim gf As New GestioneFilesDirectory
 		Dim l As New Logger
 		Dim ChiaveAttuale As String = NomeUtente & ";" & Artista & ";" & Album & ";" & Brano & ";" & Converte
@@ -671,7 +671,9 @@ Public Class looWPlayer
 							Dim pi As ProcessStartInfo = New ProcessStartInfo()
 							' Qualita = 96 / 128 / 196
 							Dim Estensione As String = gf.TornaEstensioneFileDaPath(PathCanzoneCompressa)
-							PathCanzoneCompressa = PathCanzoneCompressa.Replace(Estensione, "") & "._TMP_" & Estensione
+							If Attendi <> "true" Then
+								PathCanzoneCompressa = PathCanzoneCompressa.Replace(Estensione, "") & "._TMP_" & Estensione
+							End If
 							gf.EliminaFileFisico(PathCanzoneCompressa)
 							pi.Arguments = "-i " & Chr(34) & PathCanzone & Chr(34) & " -map 0:a:0 -b:a " & Qualita & "k " & Chr(34) & PathCanzoneCompressa.Replace("%20", " ") & Chr(34)
 							pi.FileName = HttpContext.Current.Server.MapPath(".") & "\App_Data\ffmpeg.exe"
@@ -679,7 +681,8 @@ Public Class looWPlayer
 							processoFFMpeg.StartInfo = pi
 							processoFFMpeg.Start()
 
-							If Attendi Then
+							If Attendi = "true" Then
+								l.ScriveLogServizio("Compressione brano con attesa")
 								processoFFMpeg.WaitForExit()
 							End If
 
@@ -688,7 +691,8 @@ Public Class looWPlayer
 							l.ScriveLogServizio("Lancio compressione brano: " & NomeCanzoneDaComprimere)
 							l.ScriveLogServizio("Parametri: " & pi.Arguments)
 
-							If Not Attendi Then
+							If Attendi <> "true" Then
+								l.ScriveLogServizio("Lancio thread per attesa compressione")
 								trd = New Thread(AddressOf AttesaCompletamento)
 								Dim parameters As New MyParameters
 								parameters.NomeUtente = NomeUtente
@@ -698,11 +702,11 @@ Public Class looWPlayer
 
 							'If File.Exists(PathCanzoneCompressa.Replace("%20", " ")) Then
 							Ritorno = "\Compressi\" & PathCanzoneCompressa.Replace(Path(2), "").Replace("._TMP_", "")
-							'Else
-							'    Ritorno = "ERROR: brano di destinazione non rilevato"
-							'End If
-						Else
-							Ritorno = "ERROR: brano di origine non rilevato"
+								'Else
+								'    Ritorno = "ERROR: brano di destinazione non rilevato"
+								'End If
+							Else
+								Ritorno = "ERROR: brano di origine non rilevato"
 							l.ScriveLogServizio("Brano di origine non rilevato: " & PathCanzoneCompressa.Replace("%20", " "))
 						End If
 					End If

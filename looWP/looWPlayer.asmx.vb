@@ -709,7 +709,7 @@ Public Class looWPlayer
 				End If
 			End If
 		End If
-		l.ScriveLogServizio("Fine operazione")
+		l.ScriveLogServizio("Fine operazione. Ritorno: " & Ritorno)
 
 		UltimaChiaveBranoMP3 = ""
 		UltimoRitorno = Ritorno

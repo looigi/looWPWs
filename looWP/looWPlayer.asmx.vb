@@ -880,4 +880,20 @@ Public Class looWPlayer
         Return Ritorno
     End Function
 
+	<WebMethod()>
+	Public Function RitornaVersioneApplicazione() As String
+		Dim Ritorno As String = ""
+
+		Dim gf As New GestioneFilesDirectory
+		gf.CreaDirectoryDaPercorso(Server.MapPath(".") & "\NuoveVersioni\")
+		Dim NuovaVersione As String = gf.LeggeFileIntero(Server.MapPath(".") & "\NuoveVersioni\Versione.txt")
+		If NuovaVersione <> "" Then
+			Ritorno = NuovaVersione
+		Else
+			Ritorno = "ERROR: Nessuna nuova versione rilevata"
+		End If
+
+		Return Ritorno
+	End Function
+
 End Class

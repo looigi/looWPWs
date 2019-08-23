@@ -139,6 +139,7 @@ Public Class looWPlayer
 
 				rec.close
 			End If
+			mDBCESito.ChiudeConnessione()
 
 			If PathUtente = "" Then
 				PathUtente = Path(0)
@@ -286,37 +287,7 @@ Public Class looWPlayer
 										If rec2.eof Then
 											Altro &= ";;;"
 										Else
-											Dim Bellezza As String = rec2("Bellezza").Value.ToString
-											Dim idCanzone As String = rec2("idCanzone").Value.ToString
-											Dim Ascoltata As String = rec2("Ascoltata").Value.ToString
-
-											Dim rec3 As Object = mDBCESito.RitornaRecordset("Select * From Bellezza Where idCanzone=" & idCanzone)
-											l.ScriveLogServizio("Query: Select * From Bellezza Where idCanzone=" & idCanzone)
-											If rec3 Is Nothing Then
-												' l.ScriveLogServizio("Non trovato nulla per quanto riguarda la bellezza. Lascio quella originale.")
-											Else
-												If Not rec3.eof Then
-												Else
-													Bellezza = rec3("Bellezza").Value.ToString
-												End If
-
-												rec3.close
-											End If
-
-											rec3 = mDBCESito.RitornaRecordset("Select * From Ascoltata Where idCanzone=" & idCanzone)
-											l.ScriveLogServizio("Query: Select * From Ascoltata Where idCanzone=" & idCanzone)
-											If rec3 Is Nothing Then
-												' l.ScriveLogServizio("Non trovato nulla per quanto riguarda la Ascoltata. Lascio quella originale.")
-											Else
-												If Not rec3.eof Then
-												Else
-													Ascoltata = rec3("Ascoltata").Value.ToString
-												End If
-
-												rec3.close
-											End If
-
-											Altro &= rec2("Testo").Value.ToString.Replace(";", "**PV**").Replace("§", "**A CAPO**") & ";" & rec2("TestoTradotto").Value.ToString.Replace(";", "**PV**").Replace("§", "**A CAPO**") & ";" & Ascoltata & ";" & Bellezza
+											Altro &= rec2("Testo").Value.ToString.Replace(";", "**PV**").Replace("§", "**A CAPO**") & ";" & rec2("TestoTradotto").Value.ToString.Replace(";", "**PV**").Replace("§", "**A CAPO**") & ";" & rec2("Ascoltata").Value.ToString & ";" & rec2("Bellezza").Value.ToString
 										End If
 									End If
 								Else
@@ -409,8 +380,6 @@ Public Class looWPlayer
 
 			gf = Nothing
 			u = Nothing
-
-			mDBCESito.ChiudeConnessione()
 
 			Ritorno = "Downloads\" & NomeFileFinale
 			LastFileName.Item(idUtente) = Ritorno
@@ -534,7 +503,7 @@ Public Class looWPlayer
 
 	<WebMethod()>
 	Public Function RitornaBrano(NomeUtente As String, DirectBase As String, Artista As String, Album As String,
-								 Brano As String, Converte As String, Qualita As String, Attendi As String) As String
+								 Brano As String, Converte As String, Qualita As String, Attendi As Boolean) As String
 		Dim gf As New GestioneFilesDirectory
 		Dim l As New Logger
 		Dim ChiaveAttuale As String = NomeUtente & ";" & Artista & ";" & Album & ";" & Brano & ";" & Converte
@@ -656,6 +625,8 @@ Public Class looWPlayer
 					'    End If
 					'End If
 
+					' Return PathCanzoneCompressa.Replace("%20", " ")
+
 					If File.Exists(PathCanzoneCompressa.Replace("%20", " ")) Then
 						Ritorno = "\Compressi\" & PathCanzoneCompressa.Replace(Path(2), "")
 						l.ScriveLogServizio("Canzone compressa esistente. La ritorno: " & Ritorno)
@@ -671,18 +642,21 @@ Public Class looWPlayer
 							Dim pi As ProcessStartInfo = New ProcessStartInfo()
 							' Qualita = 96 / 128 / 196
 							Dim Estensione As String = gf.TornaEstensioneFileDaPath(PathCanzoneCompressa)
-							If Attendi <> "true" Then
+
+							If Not Attendi Then
 								PathCanzoneCompressa = PathCanzoneCompressa.Replace(Estensione, "") & "._TMP_" & Estensione
+							Else
+								PathCanzoneCompressa = PathCanzoneCompressa.Replace(Estensione, "") & Estensione
 							End If
+
 							gf.EliminaFileFisico(PathCanzoneCompressa)
-							pi.Arguments = "-i " & Chr(34) & PathCanzone & Chr(34) & " -map 0:a:0 -b:a " & Qualita & "k " & Chr(34) & PathCanzoneCompressa.Replace("%20", " ") & Chr(34)
-							pi.FileName = HttpContext.Current.Server.MapPath(".") & "\App_Data\ffmpeg.exe"
-							pi.WindowStyle = ProcessWindowStyle.Normal
-							processoFFMpeg.StartInfo = pi
+								pi.Arguments = "-i " & Chr(34) & PathCanzone & Chr(34) & " -map 0:a:0 -b:a " & Qualita & "k " & Chr(34) & PathCanzoneCompressa.Replace("%20", " ") & Chr(34)
+								pi.FileName = HttpContext.Current.Server.MapPath(".") & "\App_Data\ffmpeg.exe"
+								pi.WindowStyle = ProcessWindowStyle.Normal
+								processoFFMpeg.StartInfo = pi
 							processoFFMpeg.Start()
 
-							If Attendi = "true" Then
-								l.ScriveLogServizio("Compressione brano con attesa")
+							If Attendi Then
 								processoFFMpeg.WaitForExit()
 							End If
 
@@ -691,8 +665,7 @@ Public Class looWPlayer
 							l.ScriveLogServizio("Lancio compressione brano: " & NomeCanzoneDaComprimere)
 							l.ScriveLogServizio("Parametri: " & pi.Arguments)
 
-							If Attendi <> "true" Then
-								l.ScriveLogServizio("Lancio thread per attesa compressione")
+							If Not Attendi Then
 								trd = New Thread(AddressOf AttesaCompletamento)
 								Dim parameters As New MyParameters
 								parameters.NomeUtente = NomeUtente
@@ -701,19 +674,24 @@ Public Class looWPlayer
 							End If
 
 							'If File.Exists(PathCanzoneCompressa.Replace("%20", " ")) Then
-							Ritorno = "\Compressi\" & PathCanzoneCompressa.Replace(Path(2), "").Replace("._TMP_", "")
-								'Else
-								'    Ritorno = "ERROR: brano di destinazione non rilevato"
-								'End If
+							If Not Attendi Then
+								Ritorno = "\Compressi\" & PathCanzoneCompressa.Replace(Path(2), "").Replace("._TMP_", "")
 							Else
-								Ritorno = "ERROR: brano di origine non rilevato"
+								Ritorno = "\Compressi\" & PathCanzoneCompressa.Replace(Path(2), "")
+							End If
+
+							'Else
+							'    Ritorno = "ERROR: brano di destinazione non rilevato"
+							'End If
+						Else
+							Ritorno = "ERROR: brano di origine non rilevato"
 							l.ScriveLogServizio("Brano di origine non rilevato: " & PathCanzoneCompressa.Replace("%20", " "))
 						End If
 					End If
 				End If
 			End If
 		End If
-		l.ScriveLogServizio("Fine operazione. Ritorno: " & Ritorno)
+		l.ScriveLogServizio("Fine operazione")
 
 		UltimaChiaveBranoMP3 = ""
 		UltimoRitorno = Ritorno
@@ -752,67 +730,38 @@ Public Class looWPlayer
 		l.ScriveLogServizio("Attesa completamento. Pulizia nome canzone: " & NomeCanzoneDaComprimere)
 		File.Delete(NomeCanzoneDaComprimere)
 
-		Dim NomeFileTemp As String = HttpContext.Current.Server.MapPath(".") & "\Temp\" & parameters.NomeUtente & ".txt"
-		l.ScriveLogServizio("Eliminazione file di lavoro in corso: " & NomeFileTemp)
-		conta = 0
-		Dim Errore As Boolean = False
-
-		Do While File.Exists(NomeFileTemp)
-			File.Delete(NomeFileTemp)
-			Thread.Sleep(1000)
-			conta += 1
-			If conta > 15 Then
-				Errore = True
-				Exit Do
-			End If
-		Loop
-		If Errore Then
-			' Elimino tutti i files della directory visto che non sono riuscito ad eliminare quello dell'utente
-			l.ScriveLogServizio("Elimino tutti i files della directory visto che non sono riuscito ad eliminare quello dell'utente")
-			For i As Integer = 1 To 3
-				For Each foundFile As String In My.Computer.FileSystem.GetFiles(HttpContext.Current.Server.MapPath(".") & "\Temp")
-					If foundFile.ToUpper.Contains(".TXT") Then
-						l.ScriveLogServizio("Elimino: " & foundFile)
-						File.Delete(foundFile)
-						If File.Exists(foundFile) Then
-							l.ScriveLogServizio("Elimino: " & foundFile & " -> ERRORE: Non riuscito")
-						End If
-					End If
-				Next
-				Thread.Sleep(1000)
-			Next
-		End If
-
 		trd.Abort()
+
+		File.Delete(HttpContext.Current.Server.MapPath(".") & "\Temp\" & parameters.NomeUtente & ".txt")
 	End Sub
 
 	<WebMethod()>
 	Public Function IncrementaAscoltate(NomeUtente As String, Artista As String, Album As String, Brano As String) As String
-        Dim u As New Utility
-        Dim gf As New GestioneFilesDirectory
-        Dim Path() As String = u.RitornaPercorsiDB.Split(";")
-        Dim Ritorno As String = ""
+		Dim u As New Utility
+		Dim gf As New GestioneFilesDirectory
+		Dim Path() As String = u.RitornaPercorsiDB.Split(";")
+		Dim Ritorno As String = ""
 
-        Dim mDBCE As New MetodiDbCE
-        Dim NomeDB As String = Path(1) & "MP3Tag.sdf"
-        Dim Sql As String = "Update ListaCanzone2 Set Ascoltata=Ascoltata+1 Where Artista='" & Artista.Replace("'", "''") & "' And Album='" & Album.Replace("'", "''") & "' And Canzone='" & Brano.Replace("'", "''") & "'"
-        Dim Rit As String = ""
-        Rit = mDBCE.ApreConnessione(gf.TornaNomeDirectoryDaPath(NomeDB), gf.TornaNomeFileDaPath(NomeDB))
-        If Rit <> "OK" Then
-            Return Rit
-        End If
-        Rit = mDBCE.EsegueSQL(Sql)
-        If Rit = "OK" Then
-            Ritorno = "*"
-        Else
-            Ritorno = "ERROR: " & Rit
-        End If
-        mDBCE.ChiudeConnessione()
+		Dim mDBCE As New MetodiDbCE
+		Dim NomeDB As String = Path(1) & "MP3Tag.sdf"
+		Dim Sql As String = "Update ListaCanzone2 Set Ascoltata=Ascoltata+1 Where Artista='" & Artista.Replace("'", "''") & "' And Album='" & Album.Replace("'", "''") & "' And Canzone='" & Brano.Replace("'", "''") & "'"
+		Dim Rit As String = ""
+		Rit = mDBCE.ApreConnessione(gf.TornaNomeDirectoryDaPath(NomeDB), gf.TornaNomeFileDaPath(NomeDB))
+		If Rit <> "OK" Then
+			Return Rit
+		End If
+		Rit = mDBCE.EsegueSQL(Sql)
+		If Rit = "OK" Then
+			Ritorno = "*"
+		Else
+			Ritorno = "ERROR: " & Rit
+		End If
+		mDBCE.ChiudeConnessione()
 
-        Return Ritorno
-    End Function
+		Return Ritorno
+	End Function
 
-    <WebMethod()>
+	<WebMethod()>
     Public Function SettaStelle(NomeUtente As String, Artista As String, Album As String, Brano As String, Stelle As String) As String
         Dim u As New Utility
         Dim gf As New GestioneFilesDirectory
@@ -932,97 +881,17 @@ Public Class looWPlayer
     End Function
 
 	<WebMethod()>
-	Public Function ModificaBellezza(idCanzone As String, Bellezza As String) As String
-		Dim gf As New GestioneFilesDirectory
-		gf.CreaDirectoryDaPercorso(Server.MapPath(".") & "\Log\")
-		Dim l As New Logger
-		l.ImpostaFileDiLog(Server.MapPath(".") & "\Log\Logger.txt")
-
-		l.ScriveLogServizio("ModificaBellezza -> idCanzone: " & idCanzone & " Bellezza: " & Bellezza)
-		Dim u As New Utility
+	Public Function RitornaVersioneApplicazione() As String
 		Dim Ritorno As String = ""
 
-		Dim mDBCE As New MetodiDbCE
-		Dim NomeDB As String = HttpContext.Current.Server.MapPath(".") & "\Db\looWebPlayer.sdf"
-		Dim Sql As String = ""
-
-		Dim Rit As String = mDBCE.ApreConnessione(gf.TornaNomeDirectoryDaPath(NomeDB), gf.TornaNomeFileDaPath(NomeDB))
-		If Rit <> "OK" Then
-			l.ScriveLogServizio("Errore su apertura db: " & Rit)
-			Return Rit
-		End If
-
-		Sql = "Select * From Bellezza Where idCanzone=" & idCanzone
-		Dim rec As Object = mDBCE.RitornaRecordset(Sql)
-		If rec Is Nothing Then
-			Ritorno = "ERROR: query non valida"
-			l.ScriveLogServizio("Query non valida: " & Ritorno)
-		Else
-			If Not rec.eof Then
-				Sql = "Update Bellezza Set Bellezza=" & Bellezza & " Where idCanzone=" & idCanzone
-			Else
-				Sql = "Insert Into Bellezza Values (" & idCanzone & ", " & Bellezza & ")"
-			End If
-			' rec.close
-
-			Rit = mDBCE.EsegueSQL(Sql)
-			If Rit = "OK" Then
-				Ritorno = "*"
-				l.ScriveLogServizio("OK")
-			Else
-				Ritorno = "ERROR: " & Rit
-				l.ScriveLogServizio("Errore: " & Rit)
-			End If
-		End If
-		mDBCE.ChiudeConnessione()
-
-		Return Ritorno
-	End Function
-
-	<WebMethod()>
-	Public Function VolteAscoltata(idCanzone As String) As String
 		Dim gf As New GestioneFilesDirectory
-		gf.CreaDirectoryDaPercorso(Server.MapPath(".") & "\Log\")
-		Dim l As New Logger
-		l.ImpostaFileDiLog(Server.MapPath(".") & "\Log\Logger.txt")
-
-		l.ScriveLogServizio("VolteAscoltata -> idCanzone: " & idCanzone)
-		Dim u As New Utility
-		Dim Ritorno As String = ""
-
-		Dim mDBCE As New MetodiDbCE
-		Dim NomeDB As String = HttpContext.Current.Server.MapPath(".") & "\Db\looWebPlayer.sdf"
-		Dim Sql As String = ""
-
-		Dim Rit As String = mDBCE.ApreConnessione(gf.TornaNomeDirectoryDaPath(NomeDB), gf.TornaNomeFileDaPath(NomeDB))
-		If Rit <> "OK" Then
-			l.ScriveLogServizio("Errore su apertura db: " & Rit)
-			Return Rit
-		End If
-
-		Sql = "Select * From Ascoltata Where idCanzone=" & idCanzone
-		Dim rec As Object = mDBCE.RitornaRecordset(Sql)
-		If rec Is Nothing Then
-			Ritorno = "ERROR: query non valida"
-			l.ScriveLogServizio("Query non valida: " & Ritorno)
+		gf.CreaDirectoryDaPercorso(Server.MapPath(".") & "\NuoveVersioni\")
+		Dim NuovaVersione As String = gf.LeggeFileIntero(Server.MapPath(".") & "\NuoveVersioni\Versione.txt")
+		If NuovaVersione <> "" Then
+			Ritorno = NuovaVersione
 		Else
-			If Not rec.eof Then
-				Sql = "Update Ascoltata Set Ascoltata=Ascoltata+1 Where idCanzone=" & idCanzone
-			Else
-				Sql = "Insert Into Ascoltata Values (" & idCanzone & ", 1)"
-			End If
-			' rec.close
-
-			Rit = mDBCE.EsegueSQL(Sql)
-			If Rit = "OK" Then
-				Ritorno = "*"
-				l.ScriveLogServizio("OK")
-			Else
-				Ritorno = "ERROR: " & Rit
-				l.ScriveLogServizio("Errore: " & Rit)
-			End If
+			Ritorno = "ERROR: Nessuna nuova versione rilevata"
 		End If
-		mDBCE.ChiudeConnessione()
 
 		Return Ritorno
 	End Function

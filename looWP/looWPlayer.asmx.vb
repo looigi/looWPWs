@@ -254,7 +254,7 @@ Public Class looWPlayer
 									If len > 100 Then
 										Dim Estensione As String = gf.TornaEstensioneFileDaPath(PathArtista & "\ZZZ-ImmaginiArtista\" & nfile).ToUpper.Trim
 
-										If Estensione = ".DAT" Then
+										If Estensione = ".JPG" Then
 											FilesImmagine.Add(NumeroCartella & ";" & NumeroArtisti & ";" & "\ZZZ-ImmaginiArtista\" & nfile & ";" & len & ";" & sDat & ";")
 										End If
 									End If
@@ -461,7 +461,7 @@ Public Class looWPlayer
 				If len > 100 Then
 					Dim Estensione As String = gf.TornaEstensioneFileDaPath(PathArtista & "\ZZZ-ImmaginiArtista\" & nfile).ToUpper.Trim
 
-					If Estensione = ".DAT" Then
+					If Estensione = ".JPG" Then
 						FilesImmagine.Add("\ZZZ-ImmaginiArtista\" & nfile & ";" & len)
 					End If
 				End If
@@ -551,7 +551,8 @@ Public Class looWPlayer
 		If Converte.ToUpper.Trim = "" Or Converte.ToUpper.Trim = "N" Then
 			l.ScriveLogServizio("Conversione: " & Converte)
 			If File.Exists(PathCanzone) Then
-				Ritorno = "\Normale\" & PathCanzone.Replace(Path(0) & "\", "")
+				' Ritorno = "\Normale\" & PathCanzone.Replace(Path(0) & "\", "")
+				Ritorno = PathCanzone.Replace(Path(0), "")
 
 				l.ScriveLogServizio("Brano esistente. Ritorno " & Ritorno)
 			Else
@@ -650,10 +651,10 @@ Public Class looWPlayer
 							End If
 
 							gf.EliminaFileFisico(PathCanzoneCompressa)
-								pi.Arguments = "-i " & Chr(34) & PathCanzone & Chr(34) & " -map 0:a:0 -b:a " & Qualita & "k " & Chr(34) & PathCanzoneCompressa.Replace("%20", " ") & Chr(34)
-								pi.FileName = HttpContext.Current.Server.MapPath(".") & "\App_Data\ffmpeg.exe"
-								pi.WindowStyle = ProcessWindowStyle.Normal
-								processoFFMpeg.StartInfo = pi
+							pi.Arguments = "-i " & Chr(34) & PathCanzone & Chr(34) & " -map 0:a:0 -b:a " & Qualita & "k " & Chr(34) & PathCanzoneCompressa.Replace("%20", " ") & Chr(34)
+							pi.FileName = HttpContext.Current.Server.MapPath(".") & "\App_Data\ffmpeg.exe"
+							pi.WindowStyle = ProcessWindowStyle.Normal
+							processoFFMpeg.StartInfo = pi
 							processoFFMpeg.Start()
 
 							If Attendi Then
@@ -762,123 +763,123 @@ Public Class looWPlayer
 	End Function
 
 	<WebMethod()>
-    Public Function SettaStelle(NomeUtente As String, Artista As String, Album As String, Brano As String, Stelle As String) As String
-        Dim u As New Utility
-        Dim gf As New GestioneFilesDirectory
-        Dim Path() As String = u.RitornaPercorsiDB.Split(";")
-        Dim Ritorno As String = ""
+	Public Function SettaStelle(NomeUtente As String, Artista As String, Album As String, Brano As String, Stelle As String) As String
+		Dim u As New Utility
+		Dim gf As New GestioneFilesDirectory
+		Dim Path() As String = u.RitornaPercorsiDB.Split(";")
+		Dim Ritorno As String = ""
 
-        Dim mDBCE As New MetodiDbCE
-        Dim NomeDB As String = Path(1) & "MP3Tag.sdf"
-        Dim Sql As String = "Update ListaCanzone2 Set Bellezza=" & Stelle & " Where Artista='" & Artista.Replace("'", "''") & "' And Album='" & Album.Replace("'", "''") & "' And Canzone='" & Brano.Replace("'", "''") & "'"
-        Dim Rit As String = ""
-        Rit = mDBCE.ApreConnessione(gf.TornaNomeDirectoryDaPath(NomeDB), gf.TornaNomeFileDaPath(NomeDB))
-        If Rit <> "OK" Then
-            Return Rit
-        End If
+		Dim mDBCE As New MetodiDbCE
+		Dim NomeDB As String = Path(1) & "MP3Tag.sdf"
+		Dim Sql As String = "Update ListaCanzone2 Set Bellezza=" & Stelle & " Where Artista='" & Artista.Replace("'", "''") & "' And Album='" & Album.Replace("'", "''") & "' And Canzone='" & Brano.Replace("'", "''") & "'"
+		Dim Rit As String = ""
+		Rit = mDBCE.ApreConnessione(gf.TornaNomeDirectoryDaPath(NomeDB), gf.TornaNomeFileDaPath(NomeDB))
+		If Rit <> "OK" Then
+			Return Rit
+		End If
 
-        Rit = mDBCE.EsegueSQL(Sql)
-        If Rit = "OK" Then
-            Ritorno = "*"
-        Else
-            Ritorno = "ERROR: " & Rit
-        End If
-        mDBCE.ChiudeConnessione()
+		Rit = mDBCE.EsegueSQL(Sql)
+		If Rit = "OK" Then
+			Ritorno = "*"
+		Else
+			Ritorno = "ERROR: " & Rit
+		End If
+		mDBCE.ChiudeConnessione()
 
-        Return Ritorno
-    End Function
+		Return Ritorno
+	End Function
 
-    <WebMethod()>
-    Public Function InserisceNuovoUtente(NomeUtente As String, Password As String, Amministratore As String, CartellaBase As String) As String
-        Dim gf As New GestioneFilesDirectory
-        gf.CreaDirectoryDaPercorso(Server.MapPath(".") & "\Log\")
-        Dim l As New Logger
-        l.ImpostaFileDiLog(Server.MapPath(".") & "\Log\Logger.txt")
+	<WebMethod()>
+	Public Function InserisceNuovoUtente(NomeUtente As String, Password As String, Amministratore As String, CartellaBase As String) As String
+		Dim gf As New GestioneFilesDirectory
+		gf.CreaDirectoryDaPercorso(Server.MapPath(".") & "\Log\")
+		Dim l As New Logger
+		l.ImpostaFileDiLog(Server.MapPath(".") & "\Log\Logger.txt")
 
-        l.ScriveLogServizio("InserisceNuovoUtente -> NomeUtente: " & NomeUtente & " - Password: " & Password & " - Amministratore: " & Amministratore & " - CartellaBase: " & CartellaBase)
-        Dim u As New Utility
-        Dim Ritorno As String = ""
+		l.ScriveLogServizio("InserisceNuovoUtente -> NomeUtente: " & NomeUtente & " - Password: " & Password & " - Amministratore: " & Amministratore & " - CartellaBase: " & CartellaBase)
+		Dim u As New Utility
+		Dim Ritorno As String = ""
 
-        Dim mDBCE As New MetodiDbCE
-        Dim NomeDB As String = HttpContext.Current.Server.MapPath(".") & "\Db\looWebPlayer.sdf"
-        Dim Sql As String = ""
-        Dim idUtente As Integer
+		Dim mDBCE As New MetodiDbCE
+		Dim NomeDB As String = HttpContext.Current.Server.MapPath(".") & "\Db\looWebPlayer.sdf"
+		Dim Sql As String = ""
+		Dim idUtente As Integer
 
-        Dim Rit As String = mDBCE.ApreConnessione(gf.TornaNomeDirectoryDaPath(NomeDB), gf.TornaNomeFileDaPath(NomeDB))
-        If Rit <> "OK" Then
-            l.ScriveLogServizio("Errore su apertura db: " & Rit)
-            Return Rit
-        End If
+		Dim Rit As String = mDBCE.ApreConnessione(gf.TornaNomeDirectoryDaPath(NomeDB), gf.TornaNomeFileDaPath(NomeDB))
+		If Rit <> "OK" Then
+			l.ScriveLogServizio("Errore su apertura db: " & Rit)
+			Return Rit
+		End If
 
-        Sql = "Select Max(idUtente)+1 From Utenti"
-        Dim rec As Object = mDBCE.RitornaRecordset(Sql)
-        If rec Is Nothing Then
-            Ritorno = "ERROR: query non valida"
-            l.ScriveLogServizio("Query non valida: " & Ritorno)
-        Else
-            If rec(0).Value Is DBNull.Value Then
-                idUtente = 1
-            Else
-                idUtente = rec(0).Value
-            End If
-            rec.close
+		Sql = "Select Max(idUtente)+1 From Utenti"
+		Dim rec As Object = mDBCE.RitornaRecordset(Sql)
+		If rec Is Nothing Then
+			Ritorno = "ERROR: query non valida"
+			l.ScriveLogServizio("Query non valida: " & Ritorno)
+		Else
+			If rec(0).Value Is DBNull.Value Then
+				idUtente = 1
+			Else
+				idUtente = rec(0).Value
+			End If
+			rec.close
 
-            l.ScriveLogServizio("idUtente: " & idUtente)
+			l.ScriveLogServizio("idUtente: " & idUtente)
 
-            Sql = "Insert Into Utenti Values (" & idUtente & ", '" & NomeUtente.Replace("'", "''") & "', '" & Password.Replace("'", "''") & "', '" & Amministratore.Replace("'", "''") & "', '" & CartellaBase.Replace("'", "''") & "')"
-            Rit = mDBCE.EsegueSQL(Sql)
-            If Rit = "OK" Then
-                Ritorno = "*"
-                l.ScriveLogServizio("OK")
-            Else
-                Ritorno = "ERROR: " & Rit
-                l.ScriveLogServizio("Errore: " & Rit)
-            End If
-        End If
-        mDBCE.ChiudeConnessione()
+			Sql = "Insert Into Utenti Values (" & idUtente & ", '" & NomeUtente.Replace("'", "''") & "', '" & Password.Replace("'", "''") & "', '" & Amministratore.Replace("'", "''") & "', '" & CartellaBase.Replace("'", "''") & "')"
+			Rit = mDBCE.EsegueSQL(Sql)
+			If Rit = "OK" Then
+				Ritorno = "*"
+				l.ScriveLogServizio("OK")
+			Else
+				Ritorno = "ERROR: " & Rit
+				l.ScriveLogServizio("Errore: " & Rit)
+			End If
+		End If
+		mDBCE.ChiudeConnessione()
 
-        Return Ritorno
-    End Function
+		Return Ritorno
+	End Function
 
-    <WebMethod()>
-    Public Function RitornaDatiUtente(NomeUtente As String) As String
-        Dim gf As New GestioneFilesDirectory
-        gf.CreaDirectoryDaPercorso(Server.MapPath(".") & "\Log\")
-        Dim l As New Logger
-        l.ImpostaFileDiLog(Server.MapPath(".") & "\Log\Logger.txt")
+	<WebMethod()>
+	Public Function RitornaDatiUtente(NomeUtente As String) As String
+		Dim gf As New GestioneFilesDirectory
+		gf.CreaDirectoryDaPercorso(Server.MapPath(".") & "\Log\")
+		Dim l As New Logger
+		l.ImpostaFileDiLog(Server.MapPath(".") & "\Log\Logger.txt")
 
-        Dim u As New Utility
-        Dim Ritorno As String = ""
+		Dim u As New Utility
+		Dim Ritorno As String = ""
 
-        l.ScriveLogServizio("Ritorna dati utente: " & NomeUtente)
+		l.ScriveLogServizio("Ritorna dati utente: " & NomeUtente)
 
-        Dim mDBCE As New MetodiDbCE
-        Dim NomeDB As String = HttpContext.Current.Server.MapPath(".") & "\Db\looWebPlayer.sdf"
-        Dim Sql As String = "Select * From Utenti Where Upper(LTrim(Rtrim(Utente)))='" & NomeUtente.Replace("'", "''").ToUpper.Trim & "'"
-        Dim Rit As String = mDBCE.ApreConnessione(gf.TornaNomeDirectoryDaPath(NomeDB), gf.TornaNomeFileDaPath(NomeDB))
-        If Rit <> "OK" Then
-            l.ScriveLogServizio("Apertura database KO: " & Rit)
-            Return Rit
-        End If
+		Dim mDBCE As New MetodiDbCE
+		Dim NomeDB As String = HttpContext.Current.Server.MapPath(".") & "\Db\looWebPlayer.sdf"
+		Dim Sql As String = "Select * From Utenti Where Upper(LTrim(Rtrim(Utente)))='" & NomeUtente.Replace("'", "''").ToUpper.Trim & "'"
+		Dim Rit As String = mDBCE.ApreConnessione(gf.TornaNomeDirectoryDaPath(NomeDB), gf.TornaNomeFileDaPath(NomeDB))
+		If Rit <> "OK" Then
+			l.ScriveLogServizio("Apertura database KO: " & Rit)
+			Return Rit
+		End If
 
-        Dim rec As Object = mDBCE.RitornaRecordset(Sql)
-        If rec Is Nothing Then
-            Ritorno = "ERROR: query non valida"
-            l.ScriveLogServizio("Query non valida: " & Sql)
-        Else
-            If rec.eof Then
-                Ritorno = "ERROR: nessun utente rilevato"
-                l.ScriveLogServizio("Nessun utente rilevato")
-            Else
-                Ritorno = rec("idUtente").Value & ";" & rec("Utente").Value & ";" & rec("Password").Value & ";" & rec("Amministratore").Value & ";" & rec("CartellaBase").Value & ";"
-                l.ScriveLogServizio("Utente rilevato: " & Ritorno)
-            End If
-            rec.close
-        End If
-        mDBCE.ChiudeConnessione()
+		Dim rec As Object = mDBCE.RitornaRecordset(Sql)
+		If rec Is Nothing Then
+			Ritorno = "ERROR: query non valida"
+			l.ScriveLogServizio("Query non valida: " & Sql)
+		Else
+			If rec.eof Then
+				Ritorno = "ERROR: nessun utente rilevato"
+				l.ScriveLogServizio("Nessun utente rilevato")
+			Else
+				Ritorno = rec("idUtente").Value & ";" & rec("Utente").Value & ";" & rec("Password").Value & ";" & rec("Amministratore").Value & ";" & rec("CartellaBase").Value & ";"
+				l.ScriveLogServizio("Utente rilevato: " & Ritorno)
+			End If
+			rec.close
+		End If
+		mDBCE.ChiudeConnessione()
 
-        Return Ritorno
-    End Function
+		Return Ritorno
+	End Function
 
 	<WebMethod()>
 	Public Function RitornaVersioneApplicazione() As String

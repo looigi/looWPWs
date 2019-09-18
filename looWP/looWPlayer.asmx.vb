@@ -254,7 +254,7 @@ Public Class looWPlayer
 									If len > 100 Then
 										Dim Estensione As String = gf.TornaEstensioneFileDaPath(PathArtista & "\ZZZ-ImmaginiArtista\" & nfile).ToUpper.Trim
 
-										If Estensione = ".JPG" Then
+										If Estensione = ".JPG" Or Estensione = ".DAT" Then
 											FilesImmagine.Add(NumeroCartella & ";" & NumeroArtisti & ";" & "\ZZZ-ImmaginiArtista\" & nfile & ";" & len & ";" & sDat & ";")
 										End If
 									End If
@@ -461,7 +461,7 @@ Public Class looWPlayer
 				If len > 100 Then
 					Dim Estensione As String = gf.TornaEstensioneFileDaPath(PathArtista & "\ZZZ-ImmaginiArtista\" & nfile).ToUpper.Trim
 
-					If Estensione = ".JPG" Then
+					If Estensione = ".JPG" Or Estensione = ".DAT" Then
 						FilesImmagine.Add("\ZZZ-ImmaginiArtista\" & nfile & ";" & len)
 					End If
 				End If

@@ -902,4 +902,102 @@ Public Class looWPlayer
 		Return Ritorno
 	End Function
 
+	<WebMethod()>
+	Public Function EliminaCanzone(PathBase As String, Artista As String, Album As String, Canzone As String) As String
+		Dim Ritorno As String = ""
+
+		Dim u As New Utility
+		Dim Path() As String = u.RitornaPercorsiDB.Split(";")
+
+		Dim sPath As String = PathBase.Replace("***AND***", "&").Replace("***PI***", "?")
+		Dim sArtista As String = Artista.Replace("***AND***", "&").Replace("***PI***", "?")
+		Dim sAlbum As String = Album.Replace("***AND***", "&").Replace("***PI***", "?")
+		Dim sBrano As String = Canzone.Replace("***AND***", "&").Replace("***PI***", "?")
+
+		Dim totN As String = Path(0) & PathBase & "\" & sArtista & "\" & sAlbum & "\" & sBrano
+		Dim totC As String = Path(2) & PathBase & "\" & sArtista & "\" & sAlbum & "\" & sBrano
+
+		Dim gf As New GestioneFilesDirectory
+		gf.CreaDirectoryDaPercorso(Server.MapPath(".") & "\DaEliminare\")
+
+		If File.Exists(totN) Then
+			Dim mDBCE As New MetodiDbCE
+			Dim NomeDB As String = Path(1) & "MP3Tag.sdf"
+			Dim Sql As String
+			Dim Rit As String = ""
+			Rit = mDBCE.ApreConnessione(gf.TornaNomeDirectoryDaPath(NomeDB), gf.TornaNomeFileDaPath(NomeDB))
+			If Rit <> "OK" Then
+				Ritorno = "ERROR:" & Rit
+			Else
+				Sql = "Select * From ListaCanzone2 " &
+					"Where Artista='" & sArtista.Replace("'", "''") & "' And Album='" & Album.Replace("'", "''") & "' And Canzone='" & sBrano.Replace("'", "''") & "'"
+
+				Dim rec As Object = mDBCE.RitornaRecordset(Sql)
+				If rec Is Nothing Then
+					Ritorno = "ERROR: query non valida"
+				Else
+					If Not rec.eof Then
+						Dim idBrano As Integer = rec("idCanzone").Value
+						rec.close
+
+						gf.ApreFileDiTestoPerScrittura(Server.MapPath(".") & "\DaEliminare\Lista.txt")
+						gf.ScriveTestoSuFileAperto(idBrano & ";" & PathBase & ";" & sArtista & ";" & sAlbum & ";" & sBrano & ";")
+						gf.ChiudeFileDiTestoDopoScrittura()
+
+						Sql = "Delete From ListaCanzone2 Where idCanzone = " & idBrano
+						Rit = mDBCE.EsegueSQL(Sql)
+						If Rit = "OK" Then
+							Sql = "Delete From Ascoltate Where idCanzone = " & idBrano
+							Rit = mDBCE.EsegueSQL(Sql)
+
+							gf.EliminaFileFisico(totN)
+
+							If File.Exists(totC) Then
+								gf.EliminaFileFisico(totC)
+							End If
+
+							Ritorno = "*"
+						Else
+							Ritorno = "ERROR: " & Rit
+						End If
+						mDBCE.ChiudeConnessione()
+					End If
+				End If
+
+			End If
+		Else
+			Ritorno = "ERROR: File non trovato: " & totN
+		End If
+
+		Return Ritorno
+	End Function
+
+	<WebMethod()>
+	Public Function RitornaCanzoniDaEliminare() As String
+		Dim Ritorno As String = ""
+		Dim gf As New GestioneFilesDirectory
+		gf.CreaDirectoryDaPercorso(Server.MapPath(".") & "\DaEliminare\")
+		If File.Exists(Server.MapPath(".") & "\DaEliminare\Lista.txt") Then
+			Ritorno = gf.LeggeFileIntero(Server.MapPath(".") & "\DaEliminare\Lista.txt")
+		Else
+			Ritorno = "ERROR: Nessun brano da eliminare"
+		End If
+		gf = Nothing
+
+		Return Ritorno
+	End Function
+
+	<WebMethod()>
+	Public Function EliminaListaCanzoniDaEliminare() As String
+		Dim Ritorno As String = "*"
+		Dim gf As New GestioneFilesDirectory
+		gf.CreaDirectoryDaPercorso(Server.MapPath(".") & "\DaEliminare\")
+		If File.Exists(Server.MapPath(".") & "\DaEliminare\Lista.txt") Then
+			gf.EliminaFileFisico(Server.MapPath(".") & "\DaEliminare\Lista.txt")
+		End If
+		gf = Nothing
+
+		Return Ritorno
+	End Function
+
 End Class

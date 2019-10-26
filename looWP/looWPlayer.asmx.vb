@@ -556,7 +556,8 @@ Public Class looWPlayer
 		If Converte.ToUpper.Trim = "" Or Converte.ToUpper.Trim = "N" Then
 			l.ScriveLogServizio("Conversione: " & Converte)
 			If File.Exists(PathCanzone) Then
-				Ritorno = "\Normale\" & PathCanzone.Replace(Path(0) & "\", "")
+				' Ritorno = "\Normale\" & PathCanzone.Replace(Path(0) & "\", "")
+				Ritorno = PathCanzone.Replace(Path(0), "")
 
 				l.ScriveLogServizio("Brano esistente. Ritorno " & Ritorno)
 			Else

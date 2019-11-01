@@ -941,7 +941,7 @@ Public Class looWPlayer
 						rec.close
 
 						gf.ApreFileDiTestoPerScrittura(Server.MapPath(".") & "\DaEliminare\Lista.txt")
-						gf.ScriveTestoSuFileAperto(idBrano & ";" & PathBase & ";" & sArtista & ";" & sAlbum & ";" & sBrano & ";")
+						gf.ScriveTestoSuFileAperto(idBrano & ";" & PathBase & ";" & sArtista & ";" & sAlbum & ";" & sBrano & ";|")
 						gf.ChiudeFileDiTestoDopoScrittura()
 
 						Sql = "Delete From ListaCanzone2 Where idCanzone = " & idBrano

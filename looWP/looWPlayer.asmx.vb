@@ -903,6 +903,28 @@ Public Class looWPlayer
 	End Function
 
 	<WebMethod()>
+	Public Function RitornaSeDeveAggiornare() As String
+		Dim Ritorno As String = ""
+
+		Dim gf As New GestioneFilesDirectory
+		gf.CreaDirectoryDaPercorso(Server.MapPath(".") & "\Aggiornamenti\")
+		Dim VersioneAggiornamento As String = gf.LeggeFileIntero(Server.MapPath(".") & "\Aggiornamenti\UltimoAggiornamento.txt")
+		If VersioneAggiornamento <> "" Then
+			Ritorno = VersioneAggiornamento
+		Else
+			Ritorno = "ERROR: Nessun file di aggiornamento rilevato"
+		End If
+
+		Return Ritorno
+	End Function
+
+	<WebMethod()>
+	Public Function CreaAggiornamento() As String
+		Dim Ritorno As String = UpdateFileDiAggiornamento(Server.MapPath(".") & "\Aggiornamenti\")
+		Return Ritorno
+	End Function
+
+	<WebMethod()>
 	Public Function EliminaCanzone(PathBase As String, Artista As String, Album As String, Canzone As String) As String
 		Dim Ritorno As String = ""
 

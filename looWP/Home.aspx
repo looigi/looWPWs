@@ -15,6 +15,7 @@
             <asp:Label ID="lblCompressi" runat="server" Text=""></asp:Label>
             <br />
 
+            <asp:Button ID="cmdAggiornaVersione" runat="server" Text="Aggiornamento versione libreria" />
             <asp:Button ID="cmdComprime" runat="server" Text="Comprime Mp3" />
             <asp:Button ID="cmdAnnulla" runat="server" Text="Interrompe" />
         </ContentTemplate>

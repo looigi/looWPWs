@@ -249,13 +249,15 @@ Public Class looWPlayer
 								For Each nfile As String In filesI
 									nfile = gf.TornaNomeFileDaPath(nfile)
 									Dim len As Long = FileLen(PathArtista & "\ZZZ-ImmaginiArtista\" & nfile)
-									Dim dat As Date = FileDateTime(PathCartella & "\" & nfile)
-									Dim sDat As String = Format(dat.Day, "00") & "/" & Format(dat.Month, "00") & "/" & dat.Year & " " & Format(dat.Hour, "00") & ":" & Format(dat.Minute, "00") & ":" & Format(dat.Second, "00")
-									If len > 100 Then
-										Dim Estensione As String = gf.TornaEstensioneFileDaPath(PathArtista & "\ZZZ-ImmaginiArtista\" & nfile).ToUpper.Trim
+									If File.Exists(PathCartella & "\" & nfile) Then
+										Dim dat As Date = FileDateTime(PathCartella & "\" & nfile)
+										Dim sDat As String = Format(dat.Day, "00") & "/" & Format(dat.Month, "00") & "/" & dat.Year & " " & Format(dat.Hour, "00") & ":" & Format(dat.Minute, "00") & ":" & Format(dat.Second, "00")
+										If len > 100 Then
+											Dim Estensione As String = gf.TornaEstensioneFileDaPath(PathArtista & "\ZZZ-ImmaginiArtista\" & nfile).ToUpper.Trim
 
-										If Estensione = ".JPG" Or Estensione = ".DAT" Then
-											FilesImmagine.Add(NumeroCartella & ";" & NumeroArtisti & ";" & "\ZZZ-ImmaginiArtista\" & nfile & ";" & len & ";" & sDat & ";")
+											If Estensione = ".JPG" Or Estensione = ".DAT" Then
+												FilesImmagine.Add(NumeroCartella & ";" & NumeroArtisti & ";" & "\ZZZ-ImmaginiArtista\" & nfile & ";" & len & ";" & sDat & ";")
+											End If
 										End If
 									End If
 								Next
@@ -280,7 +282,29 @@ Public Class looWPlayer
 								Dim Altro As String = ""
 
 								If Dettagli.ToUpper.Trim = "S" Then
-									Dim rec2 As Object = mDBCE.RitornaRecordset("Select * From ListaCanzone2 Where Artista='" & cc2(0).Replace("'", "''") & "' And Album='" & cc2(1).Replace("'", "''") & "' And Canzone='" & nfile.Replace("'", "''") & "'")
+									Dim ssAlbum As String = cc2(1)
+									Dim ssAnno As String = ""
+									Dim ssTraccia As String = ""
+									Dim Canzone As String = nfile
+									If ssAlbum.Contains("-") Then
+										ssAnno = Mid(ssAlbum, 1, ssAlbum.IndexOf("-"))
+										ssAlbum = ssAlbum.Replace(ssAnno & "-", "")
+									End If
+									If Canzone.Contains("-") Then
+										ssTraccia = Mid(Canzone, 1, Canzone.IndexOf("-"))
+										Canzone = Canzone.Replace(ssTraccia & "-", "")
+									End If
+									Dim ssEstensione As String = gf.TornaEstensioneFileDaPath(Canzone)
+									Canzone = Canzone.Replace(ssEstensione, "")
+
+									Dim Sql As String = "Select * From ListaCanzone2 " &
+										"Where Artista='" & cc2(0).Replace("'", "''") & "' And " &
+										"Album='" & ssAlbum.Replace("'", "''") & "' And " &
+										"Canzone='" & Canzone.Replace("'", "''") & "' And " &
+										"Anno=" & ssAnno & " And " &
+										"Traccia=" & ssTraccia & " And " &
+										"Estensione='" & ssEstensione.Replace(".", "") & "'"
+									Dim rec2 As Object = mDBCE.RitornaRecordset(Sql)
 									If rec2 Is Nothing Then
 										Altro &= ";;;"
 									Else
@@ -414,7 +438,29 @@ Public Class looWPlayer
 			Return Rit
 		End If
 
-		Dim rec2 As Object = mDBCE.RitornaRecordset("Select * From ListaCanzone2 Where Artista='" & sArtista.Replace("'", "''") & "' And Album='" & sAlbum.Replace("'", "''") & "' And Canzone='" & sBrano.Replace("'", "''") & "'")
+		Dim ssAlbum As String = Album
+		Dim ssAnno As String = ""
+		Dim ssTraccia As String = ""
+		Dim Canzone As String = sBrano
+		If ssAlbum.Contains("-") Then
+			ssAnno = Mid(ssAlbum, 1, ssAlbum.IndexOf("-"))
+			ssAlbum = ssAlbum.Replace(ssAnno & "-", "")
+		End If
+		If Canzone.Contains("-") Then
+			ssTraccia = Mid(Canzone, 1, Canzone.IndexOf("-"))
+			Canzone = Canzone.Replace(ssTraccia & "-", "")
+		End If
+		Dim ssEstensione As String = gf.TornaEstensioneFileDaPath(Canzone)
+		Canzone = Canzone.Replace(ssEstensione, "")
+
+		Dim Sql As String = "Select * From ListaCanzone2 " &
+										"Where Artista='" & sArtista.Replace("'", "''") & "' And " &
+										"Album='" & ssAlbum.Replace("'", "''") & "' And " &
+										"Canzone='" & Canzone.Replace("'", "''") & "' And " &
+										"Anno=" & ssAnno & " And " &
+										"Traccia=" & ssTraccia & " And " &
+										"Estensione='" & ssEstensione.Replace(".", "") & "'"
+		Dim rec2 As Object = mDBCE.RitornaRecordset(Sql)
 		If rec2 Is Nothing Then
 			l.ScriveLogServizio("Nessun dettaglio")
 			Ritorno &= ";;;;;;"
@@ -750,7 +796,30 @@ Public Class looWPlayer
 
 		Dim mDBCE As New MetodiDbCE
 		Dim NomeDB As String = Path(1) & "MP3Tag.sdf"
-		Dim Sql As String = "Update ListaCanzone2 Set Ascoltata=Ascoltata+1 Where Artista='" & Artista.Replace("'", "''") & "' And Album='" & Album.Replace("'", "''") & "' And Canzone='" & Brano.Replace("'", "''") & "'"
+
+		Dim ssAlbum As String = Album
+		Dim ssAnno As String = ""
+		Dim ssTraccia As String = ""
+		Dim Canzone As String = Brano
+		If ssAlbum.Contains("-") Then
+			ssAnno = Mid(ssAlbum, 1, ssAlbum.IndexOf("-"))
+			ssAlbum = ssAlbum.Replace(ssAnno & "-", "")
+		End If
+		If Canzone.Contains("-") Then
+			ssTraccia = Mid(Canzone, 1, Canzone.IndexOf("-"))
+			Canzone = Canzone.Replace(ssTraccia & "-", "")
+		End If
+		Dim ssEstensione As String = gf.TornaEstensioneFileDaPath(Canzone)
+		Canzone = Canzone.Replace(ssEstensione, "")
+
+		Dim Sql As String = "Update ListaCanzone2 Set Ascoltata=Ascoltata+1 Where " &
+			"Artista='" & Artista.Replace("'", "''") & "' And " &
+			"Album='" & ssAlbum.Replace("'", "''") & "' And " &
+			"Canzone='" & Canzone.Replace("'", "''") & "' And " &
+			"Anno=" & ssAnno & " And " &
+			"Traccia=" & ssTraccia & " And " &
+			"Estensione='" & ssEstensione & "'"
+
 		Dim Rit As String = ""
 		Rit = mDBCE.ApreConnessione(gf.TornaNomeDirectoryDaPath(NomeDB), gf.TornaNomeFileDaPath(NomeDB))
 		If Rit <> "OK" Then
@@ -776,7 +845,29 @@ Public Class looWPlayer
 
 		Dim mDBCE As New MetodiDbCE
 		Dim NomeDB As String = Path(1) & "MP3Tag.sdf"
-		Dim Sql As String = "Update ListaCanzone2 Set Bellezza=" & Stelle & " Where Artista='" & Artista.Replace("'", "''") & "' And Album='" & Album.Replace("'", "''") & "' And Canzone='" & Brano.Replace("'", "''") & "'"
+
+		Dim ssAlbum As String = Album
+		Dim ssAnno As String = ""
+		Dim ssTraccia As String = ""
+		Dim Canzone As String = Brano
+		If ssAlbum.Contains("-") Then
+			ssAnno = Mid(ssAlbum, 1, ssAlbum.IndexOf("-"))
+			ssAlbum = ssAlbum.Replace(ssAnno & "-", "")
+		End If
+		If Canzone.Contains("-") Then
+			ssTraccia = Mid(Canzone, 1, Canzone.IndexOf("-"))
+			Canzone = Canzone.Replace(ssTraccia & "-", "")
+		End If
+		Dim ssEstensione As String = gf.TornaEstensioneFileDaPath(Canzone)
+		Canzone = Canzone.Replace(ssEstensione, "")
+
+		Dim Sql As String = "Update ListaCanzone2 Set Bellezza=" & Stelle & " Where " &
+			"Artista='" & Artista.Replace("'", "''") & "' And " &
+			"Album='" & ssAlbum.Replace("'", "''") & "' And " &
+			"Canzone='" & Canzone.Replace("'", "''") & "' And " &
+			"Traccia=" & ssTraccia & " And " &
+			"Anno=" & ssAnno & " And " &
+			"Estensione='" & ssEstensione & "'"
 		Dim Rit As String = ""
 		Rit = mDBCE.ApreConnessione(gf.TornaNomeDirectoryDaPath(NomeDB), gf.TornaNomeFileDaPath(NomeDB))
 		If Rit <> "OK" Then
@@ -951,8 +1042,28 @@ Public Class looWPlayer
 			If Rit <> "OK" Then
 				Ritorno = "ERROR:" & Rit
 			Else
-				Sql = "Select * From ListaCanzone2 " &
-					"Where Artista='" & sArtista.Replace("'", "''") & "' And Album='" & Album.Replace("'", "''") & "' And Canzone='" & sBrano.Replace("'", "''") & "'"
+				Dim ssAlbum As String = Album
+				Dim ssAnno As String = ""
+				Dim ssTraccia As String = ""
+				Dim ssCanzone As String = Canzone
+				If ssAlbum.Contains("-") Then
+					ssAnno = Mid(ssAlbum, 1, ssAlbum.IndexOf("-"))
+					ssAlbum = ssAlbum.Replace(ssAnno & "-", "")
+				End If
+				If ssCanzone.Contains("-") Then
+					ssTraccia = Mid(ssCanzone, 1, ssCanzone.IndexOf("-"))
+					ssCanzone = ssCanzone.Replace(ssTraccia & "-", "")
+				End If
+				Dim ssEstensione As String = gf.TornaEstensioneFileDaPath(Canzone)
+				ssCanzone = ssCanzone.Replace(ssEstensione, "")
+
+				Sql = "Select * From ListaCanzone2 Where " &
+					"Artista='" & sArtista.Replace("'", "''") & "' And " &
+					"Album='" & ssAlbum.Replace("'", "''") & "' And " &
+					"Canzone='" & ssCanzone.Replace("'", "''") & "' And " &
+					"Traccia=" & ssTraccia & " And " &
+					"Anno=" & ssAnno & " And " &
+					"Estensione='" & ssEstensione & "'"
 
 				Dim rec As Object = mDBCE.RitornaRecordset(Sql)
 				If rec Is Nothing Then

@@ -168,11 +168,26 @@ Public Class Griglie
         Dim gf As New GestioneFilesDirectory
         Dim Ritorno As String = ""
 
-        Dim NomeDB As String = HttpContext.Current.Server.MapPath(".") & "\Db\looWebPlayer.sdf"
-        If mDBCE.ApreConnessione(gf.TornaNomeDirectoryDaPath(NomeDB), gf.TornaNomeFileDaPath(NomeDB)) = "OK" Then
-            Return True
+        'Dim NomeDB As String = HttpContext.Current.Server.MapPath(".") & "\Db\looWebPlayer.sdf"
+        'If mDBCE.ApreConnessione(gf.TornaNomeDirectoryDaPath(NomeDB), gf.TornaNomeFileDaPath(NomeDB)) = "OK" Then
+        '    Return True
+        'Else
+        '    Return False
+        'End If
+
+        Dim Connessione As String = u.LeggeImpostazioniDiBase(HttpContext.Current.Server.MapPath("."))
+
+        If Connessione = "" Then
+            Return False ' "ERROR: Connessione sito non valida"
         Else
-            Return False
+            Dim Conn As Object = u.ApreDB(Connessione)
+
+            If TypeOf (Conn) Is String Then
+                Return False ' "ERROR: " & Conn
+            Else
+                mDBCE = Conn
+                Return True
+            End If
         End If
     End Function
 

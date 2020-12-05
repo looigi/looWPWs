@@ -84,29 +84,49 @@ Public Class Percorsi
 
     Protected Sub cmdOkCartella_Click(sender As Object, e As EventArgs) Handles cmdOkCartella.Click
         Dim u As New Utility
-        Dim gf As New GestioneFilesDirectory
-        Dim Path() As String = u.RitornaPercorsiDB.Split(";")
+        'Dim u As New Utility
+        'Dim gf As New GestioneFilesDirectory
+        'Dim Path() As String = u.RitornaPercorsiDB.Split(";")
         Dim Ritorno As String = ""
 
-        Dim mDBCE As New MetodiDbCE
-        Dim NomeDB As String = HttpContext.Current.Server.MapPath(".") & "\Db\looWebPlayer.sdf"
-        Dim Sql As String = ""
-        mDBCE.ApreConnessione(gf.TornaNomeDirectoryDaPath(NomeDB), gf.TornaNomeFileDaPath(NomeDB))
+        'Dim mDBCE As New MetodiDbCE
+        'Dim NomeDB As String = HttpContext.Current.Server.MapPath(".") & "\Db\looWebPlayer.sdf"
+        'Dim Sql As String = ""
+        'mDBCE.ApreConnessione(gf.TornaNomeDirectoryDaPath(NomeDB), gf.TornaNomeFileDaPath(NomeDB))
         Dim NomeCampo As String = ""
 
-        Select Case hdnQuale.Value
-            Case "1"
-                NomeCampo = "Path"
-            Case "2"
-                NomeCampo = "PathDB"
-            Case "3"
-                NomeCampo = "PathCompressi"
-        End Select
+        Dim Connessione As String = u.LeggeImpostazioniDiBase(HttpContext.Current.Server.MapPath("."))
 
-        Sql = "Update Percorsi Set " & NomeCampo & "='" & lblPath.Text.Replace("'", "''") & "'"
-        Dim Rit As String = mDBCE.EsegueSQL(Sql)
+        If Connessione = "" Then
+            Ritorno = "ERROR: Connessione non valida"
+        Else
+            Dim Conn As Object = u.ApreDB(Connessione)
 
-        mDBCE.ChiudeConnessione()
+            If TypeOf (Conn) Is String Then
+                Ritorno = "Error:" & Conn
+            Else
+                'If SoloNuove = "S" Then
+                '	Dim m As New mailImap
+                '	Dim Ritorno2 As String = m.RitornaMessaggi(Squadra, idAnno, idUtente, Folder)
+                'End If
+
+                Dim Rec As Object = HttpContext.Current.Server.CreateObject("ADODB.Recordset")
+
+                Select Case hdnQuale.Value
+                    Case "1"
+                        NomeCampo = "Path"
+                    Case "2"
+                        NomeCampo = "PathDB"
+                    Case "3"
+                        NomeCampo = "PathCompressi"
+                End Select
+
+                Dim Sql As String = "Update Percorsi Set " & NomeCampo & "='" & lblPath.Text.Replace("'", "''") & "'"
+                Dim Rit As String = u.EsegueSql(Conn, Sql, Connessione)
+
+                u.ChiudeDB(True, Conn)
+            End If
+        End If
 
         CaricaPercorsi()
 

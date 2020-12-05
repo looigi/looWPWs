@@ -35,7 +35,8 @@ Public Class looWPlayer
 		Dim Ok As Boolean = False
 		Dim PathCartellaOriginale As String = ""
 
-		Dim Path() As String = u.RitornaPercorsiDB.Split(";")
+		Dim sPath As String = u.RitornaPercorsiDB
+		Dim Path() As String = sPath.Split(";")
 		Dim PathMp3_DB As String = Path(1)
 
 		If sArtista <> "" Then
@@ -105,27 +106,59 @@ Public Class looWPlayer
 			Dim CartelleMP3 As New List(Of String)
 
 			l.ScriveLogServizio("Apertura connessione MP3Tag.sdf")
-			Dim mDBCE As New MetodiDbCE
-			Dim NomeDB As String = PathMp3_DB & "MP3Tag.sdf"
-			Dim Rit As String = mDBCE.ApreConnessione(gf.TornaNomeDirectoryDaPath(NomeDB), gf.TornaNomeFileDaPath(NomeDB))
-			Dim rec As Object
-			If Rit <> "OK" Then
-				l.ScriveLogServizio("Ritorno non OK: " & Rit)
-				Return Rit
+
+			'Dim mDBCE As New MetodiDbCE
+			'Dim NomeDB As String = PathMp3_DB & "MP3Tag.sdf"
+			'Dim Rit As String = mDBCE.ApreConnessione(gf.TornaNomeDirectoryDaPath(NomeDB), gf.TornaNomeFileDaPath(NomeDB))
+
+			Dim mDBCE As Object
+			Dim Connessione As String = u.LeggeImpostazioniDiBase(HttpContext.Current.Server.MapPath("."))
+
+			If Connessione = "" Then
+				l.ScriveLogServizio("ERROR: Connessione non valida")
+				Return "ERROR: Connessione non valida"
+			Else
+				Dim Conn As Object = u.ApreDB(Connessione)
+
+				If TypeOf (Conn) Is String Then
+					l.ScriveLogServizio("ERROR: " & Conn)
+					Return "ERROR: " & Conn
+				Else
+					mDBCE = Conn
+				End If
 			End If
+
+			Dim rec As Object
 
 			Dim PathUtente As String = ""
 
 			l.ScriveLogServizio("Apertura connessione looWebPlayer.sdf")
-			Dim mDBCESito As New MetodiDbCE
-			Dim NomeDBSito As String = HttpContext.Current.Server.MapPath(".") & "\Db\looWebPlayer.sdf"
-			Dim RitSito As String = mDBCESito.ApreConnessione(gf.TornaNomeDirectoryDaPath(NomeDBSito), gf.TornaNomeFileDaPath(NomeDBSito))
-			If Rit <> "OK" Then
-				l.ScriveLogServizio("Ritorno non OK: " & Rit)
-				Return Rit
+			'Dim mDBCESito As New MetodiDbCE
+			'Dim NomeDBSito As String = HttpContext.Current.Server.MapPath(".") & "\Db\looWebPlayer.sdf"
+			'Dim RitSito As String = mDBCESito.ApreConnessione(gf.TornaNomeDirectoryDaPath(NomeDBSito), gf.TornaNomeFileDaPath(NomeDBSito))
+			'If Rit <> "OK" Then
+			'	l.ScriveLogServizio("Ritorno non OK: " & Rit)
+			'	Return Rit
+			'End If
+
+			Dim mDBCESito As Object
+			Dim ConnessioneSito As String = u.LeggeImpostazioniDiBase(HttpContext.Current.Server.MapPath("."))
+
+			If ConnessioneSito = "" Then
+				l.ScriveLogServizio("ERROR: Connessione sito non valida")
+				Return "ERROR: Connessione sito non valida"
+			Else
+				Dim Conn As Object = u.ApreDB(ConnessioneSito)
+
+				If TypeOf (Conn) Is String Then
+					l.ScriveLogServizio("ERROR: " & Conn)
+					Return "ERROR: " & Conn
+				Else
+					mDBCESito = Conn
+				End If
 			End If
 
-			rec = mDBCESito.RitornaRecordset("Select * From Utenti Where Utente='" & NomeUtente & "'")
+			rec = u.LeggeQuery(mDBCESito, "Select * From Utenti Where Utente='" & NomeUtente & "'", ConnessioneSito)
 			l.ScriveLogServizio("Query: Select * From Utenti Where Utente='" & NomeUtente & "'")
 			If rec Is Nothing Then
 				l.ScriveLogServizio("Non trovato nulla")
@@ -139,7 +172,7 @@ Public Class looWPlayer
 
 				rec.close
 			End If
-			mDBCESito.ChiudeConnessione()
+			u.ChiudeDB(True, mdbcesito)
 
 			If PathUtente = "" Then
 				PathUtente = Path(0)
@@ -217,7 +250,7 @@ Public Class looWPlayer
 						Artisti.Add(cc2(0) & ";§")
 						NumeroArtisti = Artisti.Count - 1
 
-						Dim rec3 As Object = mDBCE.RitornaRecordset("Select * From Members Where Gruppo='" & cc2(0).Replace("'", "''") & "'")
+						Dim rec3 As Object = u.LeggeQuery(mDBCE, "Select * From Members Where Gruppo='" & cc2(0).Replace("'", "''") & "'", Connessione)
 						Dim MembriStringa As String = ""
 						If rec3 Is Nothing Then
 							'Stop
@@ -248,8 +281,9 @@ Public Class looWPlayer
 
 								For Each nfile As String In filesI
 									nfile = gf.TornaNomeFileDaPath(nfile)
+
 									Dim len As Long = FileLen(PathArtista & "\ZZZ-ImmaginiArtista\" & nfile)
-									Dim dat As Date = FileDateTime(PathCartella & "\" & nfile)
+									Dim dat As Date = FileDateTime(PathArtista & "\ZZZ-ImmaginiArtista\" & nfile) ' PathCartella & "\" & nfile)
 									Dim sDat As String = Format(dat.Day, "00") & "/" & Format(dat.Month, "00") & "/" & dat.Year & " " & Format(dat.Hour, "00") & ":" & Format(dat.Minute, "00") & ":" & Format(dat.Second, "00")
 									If len > 100 Then
 										Dim Estensione As String = gf.TornaEstensioneFileDaPath(PathArtista & "\ZZZ-ImmaginiArtista\" & nfile).ToUpper.Trim
@@ -280,7 +314,7 @@ Public Class looWPlayer
 								Dim Altro As String = ""
 
 								If Dettagli.ToUpper.Trim = "S" Then
-									Dim rec2 As Object = mDBCE.RitornaRecordset("Select * From ListaCanzone2 Where Artista='" & cc2(0).Replace("'", "''") & "' And Album='" & cc2(1).Replace("'", "''") & "' And Canzone='" & nfile.Replace("'", "''") & "'")
+									Dim rec2 As Object = u.LeggeQuery(mDBCE, "Select * From ListaCanzone2 Where Artista='" & cc2(0).Replace("'", "''") & "' And Album='" & cc2(1).Replace("'", "''") & "' And Canzone='" & nfile.Replace("'", "''") & "'", Connessione)
 									If rec2 Is Nothing Then
 										Altro &= ";;;"
 									Else
@@ -400,7 +434,7 @@ Public Class looWPlayer
 		Dim Ritorno As String = ""
 		Dim u As New Utility
 		Dim Path() As String = u.RitornaPercorsiDB.Split(";")
-		Dim mDBCE As New MetodiDbCE
+		'Dim mDBCE As New MetodiDbCE
 
 		Dim sArtista As String = Artista.Replace("***AND***", "&").Replace("***PI***", "?")
 		Dim sAlbum As String = Album.Replace("***AND***", "&").Replace("***PI***", "?")
@@ -408,13 +442,30 @@ Public Class looWPlayer
 
 		l.ScriveLogServizio("RitornaDettaglioBrano -> Artista: " & sArtista & " - Album: " & sAlbum & " - Brano: " & sBrano)
 
-		Dim NomeDB As String = Path(1) & "MP3Tag.sdf"
-		Dim Rit As String = mDBCE.ApreConnessione(gf.TornaNomeDirectoryDaPath(NomeDB), gf.TornaNomeFileDaPath(NomeDB))
-		If Rit <> "OK" Then
-			Return Rit
+		'Dim NomeDB As String = Path(1) & "MP3Tag.sdf"
+		'Dim Rit As String = mDBCE.ApreConnessione(gf.TornaNomeDirectoryDaPath(NomeDB), gf.TornaNomeFileDaPath(NomeDB))
+		'If Rit <> "OK" Then
+		'	Return Rit
+		'End If
+
+		Dim mDBCE As Object
+		Dim Connessione As String = u.LeggeImpostazioniDiBase(HttpContext.Current.Server.MapPath("."))
+
+		If Connessione = "" Then
+			l.ScriveLogServizio("ERROR: Connessione sito non valida")
+			Return "ERROR: Connessione sito non valida"
+		Else
+			Dim Conn As Object = u.ApreDB(Connessione)
+
+			If TypeOf (Conn) Is String Then
+				l.ScriveLogServizio("ERROR: " & Conn)
+				Return "ERROR: " & Conn
+			Else
+				mDBCE = Conn
+			End If
 		End If
 
-		Dim rec2 As Object = mDBCE.RitornaRecordset("Select * From ListaCanzone2 Where Artista='" & sArtista.Replace("'", "''") & "' And Album='" & sAlbum.Replace("'", "''") & "' And Canzone='" & sBrano.Replace("'", "''") & "'")
+		Dim rec2 As Object = u.LeggeQuery(mDBCE, "Select * From ListaCanzone2 Where Artista='" & sArtista.Replace("'", "''") & "' And Album='" & sAlbum.Replace("'", "''") & "' And Canzone='" & sBrano.Replace("'", "''") & "'", Connessione)
 		If rec2 Is Nothing Then
 			l.ScriveLogServizio("Nessun dettaglio")
 			Ritorno &= ";;;;;;"
@@ -427,7 +478,7 @@ Public Class looWPlayer
 				Ritorno &= sArtista & ";" & sAlbum & ";" & sBrano & ";" & rec2("Testo").Value.ToString.Replace(";", "**PV**").Replace("§", "**A CAPO**") & ";" & rec2("TestoTradotto").Value.ToString.Replace(";", "**PV**").Replace("§", "**A CAPO**") & ";" & rec2("Ascoltata").Value.ToString & ";" & rec2("Bellezza").Value.ToString
 			End If
 		End If
-		mDBCE.ChiudeConnessione()
+		u.ChiudeDB(True, mdbce)
 
 		Return Ritorno
 	End Function
@@ -507,6 +558,12 @@ Public Class looWPlayer
 		Dim gf As New GestioneFilesDirectory
 		Dim l As New Logger
 		Dim ChiaveAttuale As String = NomeUtente & ";" & Artista & ";" & Album & ";" & Brano & ";" & Converte
+		Dim Ritorno As String = ""
+
+		'Thread.Sleep(15000)
+
+		'Ritorno = "ERROR: Errore finto"
+		'Return Ritorno
 
 		If ChiaveAttuale = UltimaChiaveBranoMP3 Then
 			l.ScriveLogServizio("Brano già in download / conversione")
@@ -522,7 +579,6 @@ Public Class looWPlayer
 
 		Dim u As New Utility
 		Dim Path() As String = u.RitornaPercorsiDB.Split(";")
-		Dim Ritorno As String = ""
 
 		Dim PathCanzone As String
 
@@ -551,8 +607,7 @@ Public Class looWPlayer
 		If Converte.ToUpper.Trim = "" Or Converte.ToUpper.Trim = "N" Then
 			l.ScriveLogServizio("Conversione: " & Converte)
 			If File.Exists(PathCanzone) Then
-				' Ritorno = "\Normale\" & PathCanzone.Replace(Path(0) & "\", "")
-				Ritorno = PathCanzone.Replace(Path(0), "")
+				Ritorno = "\Normale\" & PathCanzone.Replace(Path(0) & "\", "")
 
 				l.ScriveLogServizio("Brano esistente. Ritorno " & Ritorno)
 			Else
@@ -743,21 +798,37 @@ Public Class looWPlayer
 		Dim Path() As String = u.RitornaPercorsiDB.Split(";")
 		Dim Ritorno As String = ""
 
-		Dim mDBCE As New MetodiDbCE
-		Dim NomeDB As String = Path(1) & "MP3Tag.sdf"
+		'Dim mDBCE As New MetodiDbCE
+		'Dim NomeDB As String = Path(1) & "MP3Tag.sdf"
 		Dim Sql As String = "Update ListaCanzone2 Set Ascoltata=Ascoltata+1 Where Artista='" & Artista.Replace("'", "''") & "' And Album='" & Album.Replace("'", "''") & "' And Canzone='" & Brano.Replace("'", "''") & "'"
 		Dim Rit As String = ""
-		Rit = mDBCE.ApreConnessione(gf.TornaNomeDirectoryDaPath(NomeDB), gf.TornaNomeFileDaPath(NomeDB))
-		If Rit <> "OK" Then
-			Return Rit
+		'Rit = mDBCE.ApreConnessione(gf.TornaNomeDirectoryDaPath(NomeDB), gf.TornaNomeFileDaPath(NomeDB))
+		'If Rit <> "OK" Then
+		'	Return Rit
+		'End If
+
+		Dim mDBCE As Object
+		Dim Connessione As String = u.LeggeImpostazioniDiBase(HttpContext.Current.Server.MapPath("."))
+
+		If Connessione = "" Then
+			Return "ERROR: Connessione sito non valida"
+		Else
+			Dim Conn As Object = u.ApreDB(Connessione)
+
+			If TypeOf (Conn) Is String Then
+				Return "ERROR: " & Conn
+			Else
+				mDBCE = Conn
+			End If
 		End If
-		Rit = mDBCE.EsegueSQL(Sql)
+
+		Rit = u.EsegueSql(mDBCE, Sql, Connessione)
 		If Rit = "OK" Then
 			Ritorno = "*"
 		Else
 			Ritorno = "ERROR: " & Rit
 		End If
-		mDBCE.ChiudeConnessione()
+		u.ChiudeDB(True, mDBCE)
 
 		Return Ritorno
 	End Function
@@ -769,22 +840,37 @@ Public Class looWPlayer
 		Dim Path() As String = u.RitornaPercorsiDB.Split(";")
 		Dim Ritorno As String = ""
 
-		Dim mDBCE As New MetodiDbCE
-		Dim NomeDB As String = Path(1) & "MP3Tag.sdf"
+		'Dim mDBCE As New MetodiDbCE
+		'Dim NomeDB As String = Path(1) & "MP3Tag.sdf"
 		Dim Sql As String = "Update ListaCanzone2 Set Bellezza=" & Stelle & " Where Artista='" & Artista.Replace("'", "''") & "' And Album='" & Album.Replace("'", "''") & "' And Canzone='" & Brano.Replace("'", "''") & "'"
 		Dim Rit As String = ""
-		Rit = mDBCE.ApreConnessione(gf.TornaNomeDirectoryDaPath(NomeDB), gf.TornaNomeFileDaPath(NomeDB))
-		If Rit <> "OK" Then
-			Return Rit
+		'Rit = mDBCE.ApreConnessione(gf.TornaNomeDirectoryDaPath(NomeDB), gf.TornaNomeFileDaPath(NomeDB))
+		'If Rit <> "OK" Then
+		'	Return Rit
+		'End If
+
+		Dim mDBCE As Object
+		Dim Connessione As String = u.LeggeImpostazioniDiBase(HttpContext.Current.Server.MapPath("."))
+
+		If Connessione = "" Then
+			Return "ERROR: Connessione sito non valida"
+		Else
+			Dim Conn As Object = u.ApreDB(Connessione)
+
+			If TypeOf (Conn) Is String Then
+				Return "ERROR: " & Conn
+			Else
+				mDBCE = Conn
+			End If
 		End If
 
-		Rit = mDBCE.EsegueSQL(Sql)
+		Rit = u.EsegueSql(mDBCE, Sql, Connessione)
 		If Rit = "OK" Then
 			Ritorno = "*"
 		Else
 			Ritorno = "ERROR: " & Rit
 		End If
-		mDBCE.ChiudeConnessione()
+		u.ChiudeDB(True, mDBCE)
 
 		Return Ritorno
 	End Function
@@ -800,19 +886,36 @@ Public Class looWPlayer
 		Dim u As New Utility
 		Dim Ritorno As String = ""
 
-		Dim mDBCE As New MetodiDbCE
-		Dim NomeDB As String = HttpContext.Current.Server.MapPath(".") & "\Db\looWebPlayer.sdf"
+		'Dim mDBCE As New MetodiDbCE
+		'Dim NomeDB As String = HttpContext.Current.Server.MapPath(".") & "\Db\looWebPlayer.sdf"
 		Dim Sql As String = ""
 		Dim idUtente As Integer
 
-		Dim Rit As String = mDBCE.ApreConnessione(gf.TornaNomeDirectoryDaPath(NomeDB), gf.TornaNomeFileDaPath(NomeDB))
-		If Rit <> "OK" Then
-			l.ScriveLogServizio("Errore su apertura db: " & Rit)
-			Return Rit
+		Dim Rit As String = "" ' mDBCE.ApreConnessione(gf.TornaNomeDirectoryDaPath(NomeDB), gf.TornaNomeFileDaPath(NomeDB))
+		'If Rit <> "OK" Then
+		'	l.ScriveLogServizio("Errore su apertura db: " & Rit)
+		'	Return Rit
+		'End If
+
+		Dim mDBCE As Object
+		Dim Connessione As String = u.LeggeImpostazioniDiBase(HttpContext.Current.Server.MapPath("."))
+
+		If Connessione = "" Then
+			l.ScriveLogServizio("ERROR: Connessione sito non valida")
+			Return "ERROR: Connessione sito non valida"
+		Else
+			Dim Conn As Object = u.ApreDB(Connessione)
+
+			If TypeOf (Conn) Is String Then
+				l.ScriveLogServizio("ERROR: " & Conn)
+				Return "ERROR: " & Conn
+			Else
+				mDBCE = Conn
+			End If
 		End If
 
 		Sql = "Select Max(idUtente)+1 From Utenti"
-		Dim rec As Object = mDBCE.RitornaRecordset(Sql)
+		Dim rec As Object = u.LeggeQuery(mDBCE, Sql, Connessione)
 		If rec Is Nothing Then
 			Ritorno = "ERROR: query non valida"
 			l.ScriveLogServizio("Query non valida: " & Ritorno)
@@ -827,7 +930,7 @@ Public Class looWPlayer
 			l.ScriveLogServizio("idUtente: " & idUtente)
 
 			Sql = "Insert Into Utenti Values (" & idUtente & ", '" & NomeUtente.Replace("'", "''") & "', '" & Password.Replace("'", "''") & "', '" & Amministratore.Replace("'", "''") & "', '" & CartellaBase.Replace("'", "''") & "')"
-			Rit = mDBCE.EsegueSQL(Sql)
+			Rit = u.EsegueSql(mDBCE, Sql, Connessione)
 			If Rit = "OK" Then
 				Ritorno = "*"
 				l.ScriveLogServizio("OK")
@@ -836,7 +939,7 @@ Public Class looWPlayer
 				l.ScriveLogServizio("Errore: " & Rit)
 			End If
 		End If
-		mDBCE.ChiudeConnessione()
+		u.ChiudeDB(True, mDBCE)
 
 		Return Ritorno
 	End Function
@@ -853,16 +956,33 @@ Public Class looWPlayer
 
 		l.ScriveLogServizio("Ritorna dati utente: " & NomeUtente)
 
-		Dim mDBCE As New MetodiDbCE
-		Dim NomeDB As String = HttpContext.Current.Server.MapPath(".") & "\Db\looWebPlayer.sdf"
+		'Dim mDBCE As New MetodiDbCE
+		'Dim NomeDB As String = HttpContext.Current.Server.MapPath(".") & "\Db\looWebPlayer.sdf"
 		Dim Sql As String = "Select * From Utenti Where Upper(LTrim(Rtrim(Utente)))='" & NomeUtente.Replace("'", "''").ToUpper.Trim & "'"
-		Dim Rit As String = mDBCE.ApreConnessione(gf.TornaNomeDirectoryDaPath(NomeDB), gf.TornaNomeFileDaPath(NomeDB))
-		If Rit <> "OK" Then
-			l.ScriveLogServizio("Apertura database KO: " & Rit)
-			Return Rit
+		Dim Rit As String = "" ' mDBCE.ApreConnessione(gf.TornaNomeDirectoryDaPath(NomeDB), gf.TornaNomeFileDaPath(NomeDB))
+		'If Rit <> "OK" Then
+		'	l.ScriveLogServizio("Apertura database KO: " & Rit)
+		'	Return Rit
+		'End If
+
+		Dim mDBCE As Object
+		Dim Connessione As String = u.LeggeImpostazioniDiBase(HttpContext.Current.Server.MapPath("."))
+
+		If Connessione = "" Then
+			l.ScriveLogServizio("ERROR: Connessione sito non valida")
+			Return "ERROR: Connessione sito non valida"
+		Else
+			Dim Conn As Object = u.ApreDB(Connessione)
+
+			If TypeOf (Conn) Is String Then
+				l.ScriveLogServizio("ERROR: " & Conn)
+				Return "ERROR: " & Conn
+			Else
+				mDBCE = Conn
+			End If
 		End If
 
-		Dim rec As Object = mDBCE.RitornaRecordset(Sql)
+		Dim rec As Object = u.LeggeQuery(mDBCE, Sql, Connessione)
 		If rec Is Nothing Then
 			Ritorno = "ERROR: query non valida"
 			l.ScriveLogServizio("Query non valida: " & Sql)
@@ -876,7 +996,7 @@ Public Class looWPlayer
 			End If
 			rec.close
 		End If
-		mDBCE.ChiudeConnessione()
+		u.ChiudeDB(True, mDBCE)
 
 		Return Ritorno
 	End Function

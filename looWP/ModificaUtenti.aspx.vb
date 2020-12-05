@@ -136,53 +136,73 @@ Public Class ModificaUtenti
             Amministratore = "S"
         End If
 
-        Dim mDBCE As New MetodiDbCE
-        Dim NomeDB As String = HttpContext.Current.Server.MapPath(".") & "\Db\looWebPlayer.sdf"
+        'Dim mDBCE As New MetodiDbCE
+        'Dim NomeDB As String = HttpContext.Current.Server.MapPath(".") & "\Db\looWebPlayer.sdf"
         Dim Sql As String = ""
         Dim Messaggio As String = ""
-        mDBCE.ApreConnessione(gf.TornaNomeDirectoryDaPath(NomeDB), gf.TornaNomeFileDaPath(NomeDB))
+        'Dim u As New Utility
+        'mDBCE.ApreConnessione(gf.TornaNomeDirectoryDaPath(NomeDB), gf.TornaNomeFileDaPath(NomeDB))
 
-        If hdnIdUtente.Value = "" Then
-            Dim idUtente As Integer
+        Dim Connessione As String = u.LeggeImpostazioniDiBase(HttpContext.Current.Server.MapPath("."))
 
-            Sql = "Select Max(idUtente)+1 From Utenti"
-            Dim rec As Object = mDBCE.RitornaRecordset(Sql)
-            If rec Is Nothing Then
-                Ritorno = "ERROR: query non valida"
-            Else
-                If rec(0).Value Is DBNull.Value Then
-                    idUtente = 1
-                Else
-                    idUtente = rec(0).Value
-                End If
-                rec.close
-
-                Sql = "Insert Into Utenti Values ( " &
-                    " " & idUtente & ", " &
-                    "'" & txtUtente.Text.Replace("'", "''") & "', " &
-                    "'" & txtPassword.Text.Replace("'", "''") & "', " &
-                    "'" & Amministratore & "', " &
-                    "'" & lblPath.Text.Replace("'", "''") & "' " &
-                    ")"
-                Messaggio = "Nuovo utente inserito"
-            End If
+        If Connessione = "" Then
+            Ritorno = "ERROR: Connessione non valida"
         Else
-            Sql = "Update Utenti Set " &
-                "Utente='" & txtUtente.Text.Replace("'", "''") & "', " &
-                "Password='" & txtPassword.Text.Replace("'", "''") & "', " &
-                "Amministratore='" & Amministratore & "', " &
-                "CartellaBase='" & lblPath.Text.Replace("'", "''") & "' " &
-                "Where idUtente=" & hdnIdUtente.Value
-            Messaggio = "Utente modificato"
+            Dim Conn As Object = u.ApreDB(Connessione)
+
+            If TypeOf (Conn) Is String Then
+                Ritorno = "Error:" & Conn
+            Else
+                'If SoloNuove = "S" Then
+                '	Dim m As New mailImap
+                '	Dim Ritorno2 As String = m.RitornaMessaggi(Squadra, idAnno, idUtente, Folder)
+                'End If
+
+                Dim Rec As Object = HttpContext.Current.Server.CreateObject("ADODB.Recordset")
+
+                If hdnIdUtente.Value = "" Then
+                    Dim idUtente As Integer
+
+                    Sql = "Select Max(idUtente)+1 From Utenti"
+                    Rec = u.LeggeQuery(Conn, Sql, Connessione)
+                    If Rec Is Nothing Then
+                        Ritorno = "ERROR: query non valida"
+                    Else
+                        If rec(0).Value Is DBNull.Value Then
+                            idUtente = 1
+                        Else
+                            idUtente = rec(0).Value
+                        End If
+                        rec.close
+
+                        Sql = "Insert Into Utenti Values ( " &
+                            " " & idUtente & ", " &
+                            "'" & txtUtente.Text.Replace("'", "''") & "', " &
+                            "'" & txtPassword.Text.Replace("'", "''") & "', " &
+                            "'" & Amministratore & "', " &
+                            "'" & lblPath.Text.Replace("'", "''") & "' " &
+                            ")"
+                        Messaggio = "Nuovo utente inserito"
+                    End If
+                Else
+                    Sql = "Update Utenti Set " &
+                        "Utente='" & txtUtente.Text.Replace("'", "''") & "', " &
+                        "Password='" & txtPassword.Text.Replace("'", "''") & "', " &
+                        "Amministratore='" & Amministratore & "', " &
+                        "CartellaBase='" & lblPath.Text.Replace("'", "''") & "' " &
+                        "Where idUtente=" & hdnIdUtente.Value
+                    Messaggio = "Utente modificato"
+                End If
+
+                Dim Rit As String = u.EsegueSql(Conn, Sql, Connessione)
+
+                If Rit <> "OK" Then
+                    Messaggio = Rit
+                End If
+
+                u.ChiudeDB(True, Conn)
+            End If
         End If
-
-        Dim Rit As String = mDBCE.EsegueSQL(Sql)
-
-        If Rit <> "OK" Then
-            Messaggio = Rit
-        End If
-
-        mDBCE.ChiudeConnessione()
 
         If FileUpload1.HasFile Then
             Dim NomeImmagine As String = Server.MapPath(".") & "\App_Themes\Standard\Images\Utenti\" & txtUtente.Text & ".jpg"
@@ -223,15 +243,27 @@ Public Class ModificaUtenti
         Dim Path() As String = u.RitornaPercorsiDB.Split(";")
         Dim Ritorno As String = ""
 
-        Dim mDBCE As New MetodiDbCE
-        Dim NomeDB As String = HttpContext.Current.Server.MapPath(".") & "\Db\looWebPlayer.sdf"
-        Dim Sql As String = ""
-        mDBCE.ApreConnessione(gf.TornaNomeDirectoryDaPath(NomeDB), gf.TornaNomeFileDaPath(NomeDB))
+        'Dim mDBCE As New MetodiDbCE
+        'Dim NomeDB As String = HttpContext.Current.Server.MapPath(".") & "\Db\looWebPlayer.sdf"
+        'Dim Sql As String = ""
+        'mDBCE.ApreConnessione(gf.TornaNomeDirectoryDaPath(NomeDB), gf.TornaNomeFileDaPath(NomeDB))
 
-        Sql = "Delete From Utenti Where idUtente=" & hdnIdUtente.Value
-        Dim Rit As String = mDBCE.EsegueSQL(Sql)
+        Dim Connessione As String = u.LeggeImpostazioniDiBase(HttpContext.Current.Server.MapPath("."))
 
-        mDBCE.ChiudeConnessione()
+        If Connessione = "" Then
+            Ritorno = "ERROR: Connessione non valida"
+        Else
+            Dim Conn As Object = u.ApreDB(Connessione)
+
+            If TypeOf (Conn) Is String Then
+                Ritorno = "Error:" & Conn
+            Else
+                Dim Sql As String = "Delete From Utenti Where idUtente=" & hdnIdUtente.Value
+                Dim Rit As String = u.EsegueSql(Conn, Sql, Connessione)
+
+                u.ChiudeDB(True, Conn)
+            End If
+        End If
 
         CaricaUtenti()
 

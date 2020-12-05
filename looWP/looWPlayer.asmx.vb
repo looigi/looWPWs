@@ -9,7 +9,7 @@ Imports System.Threading
 <System.Web.Services.WebServiceBinding(ConformsTo:=WsiProfiles.BasicProfile1_1)>
 <ToolboxItem(False)>
 Public Class looWPlayer
-    Inherits System.Web.Services.WebService
+	Inherits System.Web.Services.WebService
 
 	Public Class MyParameters
 		Public Property NomeUtente As String
@@ -172,7 +172,7 @@ Public Class looWPlayer
 
 				rec.close
 			End If
-			u.ChiudeDB(True, mdbcesito)
+			u.ChiudeDB(True, mDBCESito)
 
 			If PathUtente = "" Then
 				PathUtente = Path(0)
@@ -292,133 +292,156 @@ Public Class looWPlayer
 											FilesImmagine.Add(NumeroCartella & ";" & NumeroArtisti & ";" & "\ZZZ-ImmaginiArtista\" & nfile & ";" & len & ";" & sDat & ";")
 										End If
 									End If
-								Next
-							End If
-						End If
-					End If
+                                    End If
+                                Next
+		End If
+		End If
+		End If
 
-					lDirectory.Add(NumeroArtisti & ";" & Cartella.Replace(VecchioArtista & "\", "") & ";")
-					NumeroCartella = lDirectory.Count - 1
+		lDirectory.Add(NumeroArtisti & ";" & Cartella.Replace(VecchioArtista & "\", "") & ";")
+		NumeroCartella = lDirectory.Count - 1
 
-					l.ScriveLogServizio("Nuovo artista. Ricerca files: " & files.Length)
+		l.ScriveLogServizio("Nuovo artista. Ricerca files: " & files.Length)
 
-					For Each nfile As String In files
-						nfile = gf.TornaNomeFileDaPath(nfile)
-						Dim len As Long = FileLen(PathCartella & "\" & nfile)
-						Dim dat As Date = FileDateTime(PathCartella & "\" & nfile)
-						Dim sDat As String = Format(dat.Day, "00") & "/" & Format(dat.Month, "00") & "/" & dat.Year & " " & Format(dat.Hour, "00") & ":" & Format(dat.Minute, "00") & ":" & Format(dat.Second, "00")
-						If len > 100 Then
-							Dim Estensione As String = gf.TornaEstensioneFileDaPath(PathCartella & "\" & nfile).ToUpper.Trim
+		For Each nfile As String In files
+			nfile = gf.TornaNomeFileDaPath(nfile)
+			Dim len As Long = FileLen(PathCartella & "\" & nfile)
+			Dim dat As Date = FileDateTime(PathCartella & "\" & nfile)
+			Dim sDat As String = Format(dat.Day, "00") & "/" & Format(dat.Month, "00") & "/" & dat.Year & " " & Format(dat.Hour, "00") & ":" & Format(dat.Minute, "00") & ":" & Format(dat.Second, "00")
+			If len > 100 Then
+				Dim Estensione As String = gf.TornaEstensioneFileDaPath(PathCartella & "\" & nfile).ToUpper.Trim
 
-							If Estensione = ".MP3" Or Estensione = ".WMA" Then
-								Dim Altro As String = ""
-
-								If Dettagli.ToUpper.Trim = "S" Then
-									Dim rec2 As Object = u.LeggeQuery(mDBCE, "Select * From ListaCanzone2 Where Artista='" & cc2(0).Replace("'", "''") & "' And Album='" & cc2(1).Replace("'", "''") & "' And Canzone='" & nfile.Replace("'", "''") & "'", Connessione)
-									If rec2 Is Nothing Then
-										Altro &= ";;;"
-									Else
-										If rec2.eof Then
-											Altro &= ";;;"
-										Else
-											Altro &= rec2("Testo").Value.ToString.Replace(";", "**PV**").Replace("§", "**A CAPO**") & ";" & rec2("TestoTradotto").Value.ToString.Replace(";", "**PV**").Replace("§", "**A CAPO**") & ";" & rec2("Ascoltata").Value.ToString & ";" & rec2("Bellezza").Value.ToString
-										End If
-									End If
-								Else
-									Altro &= ";;;"
-								End If
-
-								FilesMP3.Add(NumeroCartella & ";" & NumeroArtisti & ";" & nfile & ";" & len & ";" & Altro & ";" & sDat & ";")
-							Else
-								If Estensione = ".MP4" Then
-									FilesVideo.Add(NumeroCartella & ";" & NumeroArtisti & ";" & nfile & ";" & len & ";" & sDat & ";")
-								Else
-									FilesImmagine.Add(NumeroCartella & ";" & NumeroArtisti & ";" & nfile & ";" & len & ";" & sDat & ";")
-								End If
-							End If
-						End If
-					Next
+				If Estensione = ".MP3" Or Estensione = ".WMA" Then
+					Dim Altro As String = ""
 
 					If Dettagli.ToUpper.Trim = "S" Then
-						If Directory.Exists(PathCartella & "\VideoYouTube") Then
-							Dim filesV() As String = IO.Directory.GetFiles(PathCartella & "\VideoYouTube")
-
-							For Each nfile As String In filesV
-								nfile = gf.TornaNomeFileDaPath(nfile)
-								Dim len As Long = FileLen(PathCartella & "\VideoYouTube\" & nfile)
-								Dim dat As Date = FileDateTime(PathCartella & "\" & nfile)
-								Dim sDat As String = Format(dat.Day, "00") & "/" & Format(dat.Month, "00") & "/" & dat.Year & " " & Format(dat.Hour, "00") & ":" & Format(dat.Minute, "00") & ":" & Format(dat.Second, "00")
-								If len > 100 Then
-									Dim Estensione As String = gf.TornaEstensioneFileDaPath(PathCartella & "\VideoYouTube\" & nfile).ToUpper.Trim
-
-									If Estensione = ".MP4" Then
-										FilesVideo.Add(NumeroCartella & ";" & NumeroArtisti & ";" & "\VideoYouTube\" & nfile & ";" & len & ";" & sDat & ";")
-									Else
-										FilesImmagine.Add(NumeroCartella & ";" & NumeroArtisti & ";" & "\VideoYouTube\" & nfile & ";" & len & ";" & sDat & ";")
-									End If
-								End If
-							Next
+						Dim ssAlbum As String = cc2(1)
+						Dim ssAnno As String = ""
+						Dim ssTraccia As String = ""
+						Dim Canzone As String = nfile
+						If ssAlbum.Contains("-") Then
+							ssAnno = Mid(ssAlbum, 1, ssAlbum.IndexOf("-"))
+							ssAlbum = ssAlbum.Replace(ssAnno & "-", "")
 						End If
+						If Canzone.Contains("-") Then
+							ssTraccia = Mid(Canzone, 1, Canzone.IndexOf("-"))
+							Canzone = Canzone.Replace(ssTraccia & "-", "")
+						End If
+						Dim ssEstensione As String = gf.TornaEstensioneFileDaPath(Canzone)
+						Canzone = Canzone.Replace(ssEstensione, "")
+
+						Dim Sql As String = "Select * From ListaCanzone2 " &
+										"Where Artista='" & cc2(0).Replace("'", "''") & "' And " &
+										"Album='" & ssAlbum.Replace("'", "''") & "' And " &
+										"Canzone='" & Canzone.Replace("'", "''") & "' And " &
+										"Anno=" & ssAnno & " And " &
+										"Traccia=" & ssTraccia & " And " &
+										"Estensione='" & ssEstensione.Replace(".", "") & "'"
+						Dim rec2 As Object = mDBCE.RitornaRecordset(Sql)
+						If rec2 Is Nothing Then
+							Altro &= ";;;"
+						Else
+							If rec2.eof Then
+								Altro &= ";;;"
+							Else
+								Altro &= rec2("Testo").Value.ToString.Replace(";", "**PV**").Replace("§", "**A CAPO**") & ";" & rec2("TestoTradotto").Value.ToString.Replace(";", "**PV**").Replace("§", "**A CAPO**") & ";" & rec2("Ascoltata").Value.ToString & ";" & rec2("Bellezza").Value.ToString
+							End If
+						End If
+					Else
+						Altro &= ";;;"
+					End If
+
+					FilesMP3.Add(NumeroCartella & ";" & NumeroArtisti & ";" & nfile & ";" & len & ";" & Altro & ";" & sDat & ";")
+				Else
+					If Estensione = ".MP4" Then
+						FilesVideo.Add(NumeroCartella & ";" & NumeroArtisti & ";" & nfile & ";" & len & ";" & sDat & ";")
+					Else
+						FilesImmagine.Add(NumeroCartella & ";" & NumeroArtisti & ";" & nfile & ";" & len & ";" & sDat & ";")
 					End If
 				End If
-				'End If
-			Next
-			l.ScriveLogServizio("Operazione terminata")
-
-			Ritorno = "***DIRECTORY PRINCIPALE§"
-			Ritorno &= PathCartellaOriginale & "§ç"
-
-			Ritorno &= "***DIRECTORIES§"
-			Dim message = String.Join("§", lDirectory.ToArray())
-			Ritorno &= message
-			Ritorno &= "ç"
-
-			Ritorno &= "***ARTISTI§"
-			message = String.Join("§", Artisti.ToArray())
-			Ritorno &= message
-			Ritorno &= "ç"
-
-			Ritorno &= "***MP3§"
-			message = String.Join("§", FilesMP3.ToArray())
-			Ritorno &= message
-			Ritorno &= "ç"
-
-			Ritorno &= "***VIDEO§"
-			message = String.Join("§", FilesVideo.ToArray())
-			Ritorno &= message
-			Ritorno &= "ç"
-
-			Ritorno &= "***IMMAGINI§"
-			message = String.Join("§", FilesImmagine.ToArray())
-			Ritorno &= message
-			Ritorno &= "ç"
-
-			Ritorno &= "***MEMBRI§"
-			message = String.Join("§", Membri.ToArray())
-			Ritorno &= message
-			Ritorno &= "ç"
-
-			Dim NomeFileFinale As String = NomeUtente.ToUpper.Trim & ";" & sArtista & ";" & sAlbum & ";" & sBrano & ";" & sFiltro & ";.txt"
-
-			If File.Exists(HttpContext.Current.Server.MapPath(".") & "\Downloads\" & NomeFileFinale) Then
-				Try
-					File.Delete(HttpContext.Current.Server.MapPath(".") & "\Downloads\" & NomeFileFinale)
-				Catch ex As Exception
-
-				End Try
 			End If
+		Next
 
-			gf.ApreFileDiTestoPerScrittura(HttpContext.Current.Server.MapPath(".") & "\Downloads\" & NomeFileFinale)
-			gf.ScriveTestoSuFileAperto(Ritorno)
-			gf.ChiudeFileDiTestoDopoScrittura()
+		If Dettagli.ToUpper.Trim = "S" Then
+			If Directory.Exists(PathCartella & "\VideoYouTube") Then
+				Dim filesV() As String = IO.Directory.GetFiles(PathCartella & "\VideoYouTube")
 
-			gf = Nothing
-			u = Nothing
+				For Each nfile As String In filesV
+					nfile = gf.TornaNomeFileDaPath(nfile)
+					Dim len As Long = FileLen(PathCartella & "\VideoYouTube\" & nfile)
+					Dim dat As Date = FileDateTime(PathCartella & "\" & nfile)
+					Dim sDat As String = Format(dat.Day, "00") & "/" & Format(dat.Month, "00") & "/" & dat.Year & " " & Format(dat.Hour, "00") & ":" & Format(dat.Minute, "00") & ":" & Format(dat.Second, "00")
+					If len > 100 Then
+						Dim Estensione As String = gf.TornaEstensioneFileDaPath(PathCartella & "\VideoYouTube\" & nfile).ToUpper.Trim
 
-			Ritorno = "Downloads\" & NomeFileFinale
-			LastFileName.Item(idUtente) = Ritorno
+						If Estensione = ".MP4" Then
+							FilesVideo.Add(NumeroCartella & ";" & NumeroArtisti & ";" & "\VideoYouTube\" & nfile & ";" & len & ";" & sDat & ";")
+						Else
+							FilesImmagine.Add(NumeroCartella & ";" & NumeroArtisti & ";" & "\VideoYouTube\" & nfile & ";" & len & ";" & sDat & ";")
+						End If
+					End If
+				Next
+			End If
+		End If
+		End If
+		'End If
+		Next
+		l.ScriveLogServizio("Operazione terminata")
+
+		Ritorno = "***DIRECTORY PRINCIPALE§"
+		Ritorno &= PathCartellaOriginale & "§ç"
+
+		Ritorno &= "***DIRECTORIES§"
+		Dim message = String.Join("§", lDirectory.ToArray())
+		Ritorno &= message
+		Ritorno &= "ç"
+
+		Ritorno &= "***ARTISTI§"
+		message = String.Join("§", Artisti.ToArray())
+		Ritorno &= message
+		Ritorno &= "ç"
+
+		Ritorno &= "***MP3§"
+		message = String.Join("§", FilesMP3.ToArray())
+		Ritorno &= message
+		Ritorno &= "ç"
+
+		Ritorno &= "***VIDEO§"
+		message = String.Join("§", FilesVideo.ToArray())
+		Ritorno &= message
+		Ritorno &= "ç"
+
+		Ritorno &= "***IMMAGINI§"
+		message = String.Join("§", FilesImmagine.ToArray())
+		Ritorno &= message
+		Ritorno &= "ç"
+
+		Ritorno &= "***MEMBRI§"
+		message = String.Join("§", Membri.ToArray())
+		Ritorno &= message
+		Ritorno &= "ç"
+
+		Dim NomeFileFinale As String = NomeUtente.ToUpper.Trim & ";" & sArtista & ";" & sAlbum & ";" & sBrano & ";" & sFiltro & ";.txt"
+
+		If File.Exists(HttpContext.Current.Server.MapPath(".") & "\Downloads\" & NomeFileFinale) Then
+			Try
+				File.Delete(HttpContext.Current.Server.MapPath(".") & "\Downloads\" & NomeFileFinale)
+			Catch ex As Exception
+
+			End Try
+		End If
+
+		gf.ApreFileDiTestoPerScrittura(HttpContext.Current.Server.MapPath(".") & "\Downloads\" & NomeFileFinale)
+		gf.ScriveTestoSuFileAperto(Ritorno)
+		gf.ChiudeFileDiTestoDopoScrittura()
+
+		gf = Nothing
+		u = Nothing
+
+		Ritorno = "Downloads\" & NomeFileFinale
+		LastFileName.Item(idUtente) = Ritorno
 		Else
-			Ritorno = LastFileName.Item(idUtente)
+		Ritorno = LastFileName.Item(idUtente)
 		End If
 
 		Return Ritorno
@@ -434,7 +457,7 @@ Public Class looWPlayer
 		Dim Ritorno As String = ""
 		Dim u As New Utility
 		Dim Path() As String = u.RitornaPercorsiDB.Split(";")
-		'Dim mDBCE As New MetodiDbCE
+		Dim mDBCE As New MetodiDbCE
 
 		Dim sArtista As String = Artista.Replace("***AND***", "&").Replace("***PI***", "?")
 		Dim sAlbum As String = Album.Replace("***AND***", "&").Replace("***PI***", "?")
@@ -442,30 +465,36 @@ Public Class looWPlayer
 
 		l.ScriveLogServizio("RitornaDettaglioBrano -> Artista: " & sArtista & " - Album: " & sAlbum & " - Brano: " & sBrano)
 
-		'Dim NomeDB As String = Path(1) & "MP3Tag.sdf"
-		'Dim Rit As String = mDBCE.ApreConnessione(gf.TornaNomeDirectoryDaPath(NomeDB), gf.TornaNomeFileDaPath(NomeDB))
-		'If Rit <> "OK" Then
-		'	Return Rit
-		'End If
-
-		Dim mDBCE As Object
-		Dim Connessione As String = u.LeggeImpostazioniDiBase(HttpContext.Current.Server.MapPath("."))
-
-		If Connessione = "" Then
-			l.ScriveLogServizio("ERROR: Connessione sito non valida")
-			Return "ERROR: Connessione sito non valida"
-		Else
-			Dim Conn As Object = u.ApreDB(Connessione)
-
-			If TypeOf (Conn) Is String Then
-				l.ScriveLogServizio("ERROR: " & Conn)
-				Return "ERROR: " & Conn
-			Else
-				mDBCE = Conn
-			End If
+		Dim NomeDB As String = Path(1) & "MP3Tag.sdf"
+		Dim Rit As String = mDBCE.ApreConnessione(gf.TornaNomeDirectoryDaPath(NomeDB), gf.TornaNomeFileDaPath(NomeDB))
+		If Rit <> "OK" Then
+			Return Rit
 		End If
 
 		Dim rec2 As Object = u.LeggeQuery(mDBCE, "Select * From ListaCanzone2 Where Artista='" & sArtista.Replace("'", "''") & "' And Album='" & sAlbum.Replace("'", "''") & "' And Canzone='" & sBrano.Replace("'", "''") & "'", Connessione)
+		Dim ssAlbum As String = Album
+		Dim ssAnno As String = ""
+		Dim ssTraccia As String = ""
+		Dim Canzone As String = sBrano
+		If ssAlbum.Contains("-") Then
+			ssAnno = Mid(ssAlbum, 1, ssAlbum.IndexOf("-"))
+			ssAlbum = ssAlbum.Replace(ssAnno & "-", "")
+		End If
+		If Canzone.Contains("-") Then
+			ssTraccia = Mid(Canzone, 1, Canzone.IndexOf("-"))
+			Canzone = Canzone.Replace(ssTraccia & "-", "")
+		End If
+		Dim ssEstensione As String = gf.TornaEstensioneFileDaPath(Canzone)
+		Canzone = Canzone.Replace(ssEstensione, "")
+
+		Dim Sql As String = "Select * From ListaCanzone2 " &
+										"Where Artista='" & sArtista.Replace("'", "''") & "' And " &
+										"Album='" & ssAlbum.Replace("'", "''") & "' And " &
+										"Canzone='" & Canzone.Replace("'", "''") & "' And " &
+										"Anno=" & ssAnno & " And " &
+										"Traccia=" & ssTraccia & " And " &
+										"Estensione='" & ssEstensione.Replace(".", "") & "'"
+		Dim rec2 As Object = mDBCE.RitornaRecordset(Sql)
 		If rec2 Is Nothing Then
 			l.ScriveLogServizio("Nessun dettaglio")
 			Ritorno &= ";;;;;;"
@@ -478,7 +507,7 @@ Public Class looWPlayer
 				Ritorno &= sArtista & ";" & sAlbum & ";" & sBrano & ";" & rec2("Testo").Value.ToString.Replace(";", "**PV**").Replace("§", "**A CAPO**") & ";" & rec2("TestoTradotto").Value.ToString.Replace(";", "**PV**").Replace("§", "**A CAPO**") & ";" & rec2("Ascoltata").Value.ToString & ";" & rec2("Bellezza").Value.ToString
 			End If
 		End If
-		u.ChiudeDB(True, mdbce)
+		mDBCE.ChiudeConnessione()
 
 		Return Ritorno
 	End Function
@@ -607,7 +636,8 @@ Public Class looWPlayer
 		If Converte.ToUpper.Trim = "" Or Converte.ToUpper.Trim = "N" Then
 			l.ScriveLogServizio("Conversione: " & Converte)
 			If File.Exists(PathCanzone) Then
-				Ritorno = "\Normale\" & PathCanzone.Replace(Path(0) & "\", "")
+				' Ritorno = "\Normale\" & PathCanzone.Replace(Path(0) & "\", "")
+				Ritorno = PathCanzone.Replace(Path(0), "")
 
 				l.ScriveLogServizio("Brano esistente. Ritorno " & Ritorno)
 			Else
@@ -797,27 +827,37 @@ Public Class looWPlayer
 		Dim gf As New GestioneFilesDirectory
 		Dim Path() As String = u.RitornaPercorsiDB.Split(";")
 		Dim Ritorno As String = ""
-
-		'Dim mDBCE As New MetodiDbCE
-		'Dim NomeDB As String = Path(1) & "MP3Tag.sdf"
+		Dim mDBCE As New MetodiDbCE
+		Dim NomeDB As String = Path(1) & "MP3Tag.sdf"
 		Dim Sql As String = "Update ListaCanzone2 Set Ascoltata=Ascoltata+1 Where Artista='" & Artista.Replace("'", "''") & "' And Album='" & Album.Replace("'", "''") & "' And Canzone='" & Brano.Replace("'", "''") & "'"
-		Dim Rit As String = ""
-		'Rit = mDBCE.ApreConnessione(gf.TornaNomeDirectoryDaPath(NomeDB), gf.TornaNomeFileDaPath(NomeDB))
-		'If Rit <> "OK" Then
-		'	Return Rit
-		'End If
+		Dim mDBCE As New MetodiDbCE
+		Rit = mDBCE.ApreConnessione(gf.TornaNomeDirectoryDaPath(NomeDB), gf.TornaNomeFileDaPath(NomeDB))
+		If Rit <> "OK" Then
+			Return Rit
+			"Artista='" & Artista.Replace("'", "''") & "' And " &
+		Rit = mDBCE.EsegueSQL(Sql)
+			"Anno=" & ssAnno & " And " &
+			"Traccia=" & ssTraccia & " And " &
+			"Estensione='" & ssEstensione & "'"
 
-		Dim mDBCE As Object
+		Dim Sql As String = "Update ListaCanzone2 Set Ascoltata=Ascoltata+1 Where Artista='" & Artista.Replace("'", "''") & "' And Album='" & Album.Replace("'", "''") & "' And Canzone='" & Brano.Replace("'", "''") & "'"
+			mDBCE.ChiudeConnessione()
+			'Rit = mDBCE.ApreConnessione(gf.TornaNomeDirectoryDaPath(NomeDB), gf.TornaNomeFileDaPath(NomeDB))
+			'If Rit <> "OK" Then
+			'	Return Rit
+			'End If
+
+			Dim mDBCE As Object
 		Dim Connessione As String = u.LeggeImpostazioniDiBase(HttpContext.Current.Server.MapPath("."))
 
 		If Connessione = "" Then
 			Return "ERROR: Connessione sito non valida"
 		Else
-			Dim Conn As Object = u.ApreDB(Connessione)
-
-			If TypeOf (Conn) Is String Then
+				Dim mDBCE As New MetodiDbCE
+				Dim NomeDB As String = Path(1) & "MP3Tag.sdf"
+				Dim Sql As String = "Update ListaCanzone2 Set Bellezza=" & Stelle & " Where Artista='" & Artista.Replace("'", "''") & "' And Album='" & Album.Replace("'", "''") & "' And Canzone='" & Brano.Replace("'", "''") & "'"
 				Return "ERROR: " & Conn
-			Else
+				Else
 				mDBCE = Conn
 			End If
 		End If
@@ -1013,6 +1053,146 @@ Public Class looWPlayer
 		Else
 			Ritorno = "ERROR: Nessuna nuova versione rilevata"
 		End If
+
+		Return Ritorno
+	End Function
+
+	<WebMethod()>
+	Public Function RitornaSeDeveAggiornare() As String
+		Dim Ritorno As String = ""
+
+		Dim gf As New GestioneFilesDirectory
+		gf.CreaDirectoryDaPercorso(Server.MapPath(".") & "\Aggiornamenti\")
+		Dim VersioneAggiornamento As String = gf.LeggeFileIntero(Server.MapPath(".") & "\Aggiornamenti\UltimoAggiornamento.txt")
+		If VersioneAggiornamento <> "" Then
+			Ritorno = VersioneAggiornamento
+		Else
+			Ritorno = "ERROR: Nessun file di aggiornamento rilevato"
+		End If
+
+		Return Ritorno
+	End Function
+
+	<WebMethod()>
+	Public Function CreaAggiornamento() As String
+		Dim Ritorno As String = UpdateFileDiAggiornamento(Server.MapPath(".") & "\Aggiornamenti\")
+		Return Ritorno
+	End Function
+
+	<WebMethod()>
+	Public Function EliminaCanzone(PathBase As String, Artista As String, Album As String, Canzone As String) As String
+		Dim Ritorno As String = ""
+
+		Dim u As New Utility
+		Dim Path() As String = u.RitornaPercorsiDB.Split(";")
+
+		Dim sPath As String = PathBase.Replace("***AND***", "&").Replace("***PI***", "?")
+		Dim sArtista As String = Artista.Replace("***AND***", "&").Replace("***PI***", "?")
+		Dim sAlbum As String = Album.Replace("***AND***", "&").Replace("***PI***", "?")
+		Dim sBrano As String = Canzone.Replace("***AND***", "&").Replace("***PI***", "?")
+
+		Dim totN As String = Path(0) & PathBase & "\" & sArtista & "\" & sAlbum & "\" & sBrano
+		Dim totC As String = Path(2) & PathBase & "\" & sArtista & "\" & sAlbum & "\" & sBrano
+
+		Dim gf As New GestioneFilesDirectory
+		gf.CreaDirectoryDaPercorso(Server.MapPath(".") & "\DaEliminare\")
+
+		If File.Exists(totN) Then
+			Dim mDBCE As New MetodiDbCE
+			Dim NomeDB As String = Path(1) & "MP3Tag.sdf"
+			Dim Sql As String
+			Dim Rit As String = ""
+			Rit = mDBCE.ApreConnessione(gf.TornaNomeDirectoryDaPath(NomeDB), gf.TornaNomeFileDaPath(NomeDB))
+			If Rit <> "OK" Then
+				Ritorno = "ERROR:" & Rit
+			Else
+				Dim ssAlbum As String = Album
+				Dim ssAnno As String = ""
+				Dim ssTraccia As String = ""
+				Dim ssCanzone As String = Canzone
+				If ssAlbum.Contains("-") Then
+					ssAnno = Mid(ssAlbum, 1, ssAlbum.IndexOf("-"))
+					ssAlbum = ssAlbum.Replace(ssAnno & "-", "")
+				End If
+				If ssCanzone.Contains("-") Then
+					ssTraccia = Mid(ssCanzone, 1, ssCanzone.IndexOf("-"))
+					ssCanzone = ssCanzone.Replace(ssTraccia & "-", "")
+				End If
+				Dim ssEstensione As String = gf.TornaEstensioneFileDaPath(Canzone)
+				ssCanzone = ssCanzone.Replace(ssEstensione, "")
+
+				Sql = "Select * From ListaCanzone2 Where " &
+					"Artista='" & sArtista.Replace("'", "''") & "' And " &
+					"Album='" & ssAlbum.Replace("'", "''") & "' And " &
+					"Canzone='" & ssCanzone.Replace("'", "''") & "' And " &
+					"Traccia=" & ssTraccia & " And " &
+					"Anno=" & ssAnno & " And " &
+					"Estensione='" & ssEstensione & "'"
+
+				Dim rec As Object = mDBCE.RitornaRecordset(Sql)
+				If rec Is Nothing Then
+					Ritorno = "ERROR: query non valida"
+				Else
+					If Not rec.eof Then
+						Dim idBrano As Integer = rec("idCanzone").Value
+						rec.close
+
+						gf.ApreFileDiTestoPerScrittura(Server.MapPath(".") & "\DaEliminare\Lista.txt")
+						gf.ScriveTestoSuFileAperto(idBrano & ";" & PathBase & ";" & sArtista & ";" & sAlbum & ";" & sBrano & ";|")
+						gf.ChiudeFileDiTestoDopoScrittura()
+
+						Sql = "Delete From ListaCanzone2 Where idCanzone = " & idBrano
+						Rit = mDBCE.EsegueSQL(Sql)
+						If Rit = "OK" Then
+							Sql = "Delete From Ascoltate Where idCanzone = " & idBrano
+							Rit = mDBCE.EsegueSQL(Sql)
+
+							gf.EliminaFileFisico(totN)
+
+							If File.Exists(totC) Then
+								gf.EliminaFileFisico(totC)
+							End If
+
+							Ritorno = "*"
+						Else
+							Ritorno = "ERROR: " & Rit
+						End If
+						mDBCE.ChiudeConnessione()
+					End If
+				End If
+
+			End If
+		Else
+			Ritorno = "ERROR: File non trovato: " & totN
+		End If
+
+		Return Ritorno
+	End Function
+
+	<WebMethod()>
+	Public Function RitornaCanzoniDaEliminare() As String
+		Dim Ritorno As String = ""
+		Dim gf As New GestioneFilesDirectory
+		gf.CreaDirectoryDaPercorso(Server.MapPath(".") & "\DaEliminare\")
+		If File.Exists(Server.MapPath(".") & "\DaEliminare\Lista.txt") Then
+			Ritorno = gf.LeggeFileIntero(Server.MapPath(".") & "\DaEliminare\Lista.txt")
+		Else
+			Ritorno = "ERROR: Nessun brano da eliminare"
+		End If
+		gf = Nothing
+
+		Return Ritorno
+	End Function
+
+	<WebMethod()>
+	Public Function EliminaListaCanzoniDaEliminare() As String
+		Dim Ritorno As String = "*"
+		Dim gf As New GestioneFilesDirectory
+		gf.CreaDirectoryDaPercorso(Server.MapPath(".") & "\DaEliminare\")
+		If File.Exists(Server.MapPath(".") & "\DaEliminare\Lista.txt") Then
+			gf.EliminaFileFisico(Server.MapPath(".") & "\DaEliminare\Lista.txt")
+		End If
+		gf = Nothing
 
 		Return Ritorno
 	End Function

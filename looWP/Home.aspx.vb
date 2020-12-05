@@ -111,4 +111,10 @@ Public Class Home
 		InterrompiElaborazione = True
 		trd.Abort()
 	End Sub
+
+	Protected Sub cmdAggiornaVersione_Click(sender As Object, e As EventArgs) Handles cmdAggiornaVersione.Click
+		Dim Ritorno As String = UpdateFileDiAggiornamento(Server.MapPath(".") & "\Aggiornamenti\")
+
+		lblCompressi.Text = "Aggiornamento file di versione libreria effettuato. Versione: " & Ritorno
+	End Sub
 End Class

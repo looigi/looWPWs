@@ -44,4 +44,20 @@ Module mdlLooWP
         Return Ritorno
     End Function
 
+	Public Function UpdateFileDiAggiornamento(Path As String) As String
+		Dim gf As New GestioneFilesDirectory
+		gf.CreaDirectoryDaPercorso(Path)
+		Dim VersioneAggiornamento As String = gf.LeggeFileIntero(Path & "UltimoAggiornamento.txt")
+		If VersioneAggiornamento <> "" Then
+			Dim va As Integer = Val(VersioneAggiornamento) + 1
+			gf.EliminaFileFisico(Path & "UltimoAggiornamento.txt")
+			gf.CreaAggiornaFile(Path & "UltimoAggiornamento.txt", Str(va) & "; " & Now)
+			VersioneAggiornamento = va.ToString
+		Else
+			gf.CreaAggiornaFile(Path & "UltimoAggiornamento.txt", "1" & "; " & Now)
+			VersioneAggiornamento = "1"
+		End If
+
+		Return VersioneAggiornamento
+	End Function
 End Module

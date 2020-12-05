@@ -1,1 +1,1 @@
-D:\;D:\Looigi\VB.Net\Miei\Form\MP3Tag\MP3Tag\bin\Release\DB;D:\Looigi\MP3daPassare
+E:\Mp3;E:\Sorgenti\VB.Net\Miei\Form\MP3Tag\MP3Tag\bin\Release\DB;D:\Looigi\MP3daPassare

@@ -195,7 +195,7 @@ Public Class Griglie
         riga = Nothing
         dttTabella = Nothing
 
-        mDBCE.ChiudeConnessione()
+        'mDBCE.ChiudeConnessione()
     End Sub
 
     Public Sub AggiungeValori(Sql As String)
